@@ -14,9 +14,11 @@ module Mutable =
         inherit obj()
         let mutable __current : Aardvark.Base.Incremental.IModRef<Presentation.Model.Model> = Aardvark.Base.Incremental.EqModRef<Presentation.Model.Model>(__initial) :> Aardvark.Base.Incremental.IModRef<Presentation.Model.Model>
         let _currentModel = ResetMod.Create(__initial.currentModel)
+        let _fill = ResetMod.Create(__initial.fill)
         let _cameraState = Aardvark.UI.Primitives.Mutable.MCameraControllerState.Create(__initial.cameraState)
         
         member x.currentModel = _currentModel :> IMod<_>
+        member x.fill = _fill :> IMod<_>
         member x.cameraState = _cameraState
         
         member x.Current = __current :> IMod<_>
@@ -25,6 +27,7 @@ module Mutable =
                 __current.Value <- v
                 
                 ResetMod.Update(_currentModel,v.currentModel)
+                ResetMod.Update(_fill,v.fill)
                 Aardvark.UI.Primitives.Mutable.MCameraControllerState.Update(_cameraState, v.cameraState)
                 
         
@@ -47,6 +50,12 @@ module Mutable =
                     override x.Get(r) = r.currentModel
                     override x.Set(r,v) = { r with currentModel = v }
                     override x.Update(r,f) = { r with currentModel = f r.currentModel }
+                }
+            let fill =
+                { new Lens<Presentation.Model.Model, System.Boolean>() with
+                    override x.Get(r) = r.fill
+                    override x.Set(r,v) = { r with fill = v }
+                    override x.Update(r,f) = { r with fill = f r.fill }
                 }
             let cameraState =
                 { new Lens<Presentation.Model.Model, Aardvark.UI.Primitives.CameraControllerState>() with

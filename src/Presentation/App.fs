@@ -10,14 +10,18 @@ open Presentation.Model
 
 type Message =
     | ToggleModel
+    | ToggleFill
     | CameraMessage of CameraControllerMessage
 
 module App =
     
-    let initial = { currentModel = Box; cameraState = CameraController.initial }
+    let initial = { fill = true; currentModel = Box; cameraState = CameraController.initial }
 
     let update (m : Model) (msg : Message) =
         match msg with
+            | ToggleFill ->
+                { m  with fill = not m.fill }
+
             | ToggleModel -> 
                 match m.currentModel with
                     | Box -> { m with currentModel = Sphere }
@@ -39,6 +43,7 @@ module App =
                     | Sphere -> Sg.sphere 5 (Mod.constant C4b.Green) (Mod.constant 1.0)
             )
             |> Sg.dynamic
+            |> Sg.fillMode (m.fill |> Mod.map (function true -> FillMode.Fill | false -> FillMode.Line))
             |> Sg.shader {
                 do! DefaultSurfaces.trafo
                 do! DefaultSurfaces.simpleLighting
@@ -59,41 +64,112 @@ module App =
             ]
 
         let slides (content : list<list<DomNode<'msg>>>) =
-            require reveal (
-                onBoot "Reveal.initialize({ width: '100%', height: '100%', margin: 0, minScale: 1.0, maxScale: 1.0});" (
-                    div [clazz "reveal"] [
-                        div [ clazz "slides" ] (
-                            content |> List.map (fun c -> 
-                                section [] c
+            require Html.semui (
+                require reveal (
+                    onBoot "Reveal.initialize({ width: '100%', height: '100%', margin: 0, minScale: 1.0, maxScale: 1.0});" (
+                        div [clazz "reveal"] [
+                            div [ clazz "slides" ] (
+                                content |> List.map (fun c -> 
+                                    section [style "width: 100%; height: 100%"] [
+                                        div [ clazz "root" ] c 
+                                    ]
+                                )
                             )
-                        )
-                    ]
+                        ]
+                    )
                 )
             )
 
+        let subapp (app : App<'model, 'mmodel, 'msg>) : DomNode<'m2> =
+            failwith ""
+
+        let embedded = 
+            subapp {
+                initial = Unchecked.defaultof<CameraControllerState>
+                update = CameraController.update
+                view = fun mm -> 
+                
+                    DomNode.RenderControl(
+                        AttributeMap.ofList [ style "width: 50%; height: 50%; background: #222"],
+                        Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
+                        AList.ofList [
+                            Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
+                            RenderCommand.SceneGraph sg
+                        ],
+                        None
+                    )
+                    |> CameraController.withControls m.cameraState id frustum
+
+                threads = CameraController.threads
+                unpersist = Unpersist.instance<CameraControllerState, MCameraControllerState>
+            }
 
 
             
         slides [
             [
+                div [style "background: red; width: 50%; height: 50%"][]
+            ]
+            [
+                h2 [] [text "I am cube"]
+
+                
                 DomNode.RenderControl(
-                    AttributeMap.ofList [ style "width: 100%; height: 100%; text-align: initial; transition: none !important"],
+                    AttributeMap.ofList [ style "width: 50%; height: 50%; background: #222"],
                     Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
                     AList.ofList [
-                        Aardvark.UI.RenderCommand.Clear(Some (Mod.constant C4f.White), Some (Mod.constant 1.0))
+                        Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
                         RenderCommand.SceneGraph sg
                     ],
                     None
                 )
                 |> CameraController.withControls m.cameraState CameraMessage frustum
-     
-                div [style "position: fixed; left: 20px; top: 20px"] [
-                    button [onClick (fun _ -> ToggleModel)] [text "Toggle Model"]
+                
+                ul [] [
+                    li [] [text "Bullet 1"]
+                    li [] [text "Bullet 2"]
+                    li [] [ 
+                        text "Wireframe: "
+                        div [ clazz "ui mini toggle checkbox"] [
+                            input [attribute "type" "checkbox"; onChange (fun _ -> ToggleFill) ]
+                            label [] []
+                        ]
+                    ]
                 ]
+
             ]
             [
-                text "slide 2"
+                h1 [] [text "Hi There"]
+                ul [] [
+                    li [] [text "Bullet 1"]
+                    li [] [text "Bullet 2"]
+                ]
             ]
+
+
+            [
+                div [ style "width: 100%; height: 100%"] [
+                    img [attribute "src" "https://upload.wikimedia.org/wikipedia/commons/e/e0/Clouds_over_the_Atlantic_Ocean.jpg"]
+                ]
+            ]
+
+            //    //div [style "position: fixed; left: 20px; top: 20px"] [
+            //    //    button [onClick (fun _ -> ToggleModel)] [text "Toggle Model"]
+            //    //]
+            //]
+            //[
+            //    DomNode.RenderControl(
+            //        AttributeMap.ofList [ style "position: relative; left: 0; top: 0; width: 100%; height: calc(100% - 50px)"],
+            //        Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
+            //        AList.ofList [
+            //            Aardvark.UI.RenderCommand.Clear(Some (Mod.constant C4f.VRVisGreen), Some (Mod.constant 1.0))
+            //            RenderCommand.SceneGraph sg
+            //        ],
+            //        None
+            //    )
+            //    |> CameraController.withControls m.cameraState CameraMessage frustum
+     
+            //]
         ]
 
     let app =

@@ -14,12 +14,11 @@
     <RunWorkingDirectory>$(OutputPath)\netcoreapp2.0</RunWorkingDirectory>
   </PropertyGroup>
   <ItemGroup>
-	<EmbeddedResource Include="fixes.css" />
-	<Compile Include="Model.fs" />
-	<Compile Include="Model.g.fs" />
-	<Compile Include="App.fs" />
+    <EmbeddedResource Include="fixes.css" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Model.g.fs" />
+    <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

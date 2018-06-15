@@ -14,5 +14,6 @@ type Primitive =
 type Model =
     {
         currentModel    : Primitive
+        fill            : bool
         cameraState     : CameraControllerState
     }
