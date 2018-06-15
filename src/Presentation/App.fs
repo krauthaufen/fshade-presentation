@@ -2,6 +2,7 @@ namespace Presentation
 
 open System
 open Aardvark.Base
+open Aardvark.Base.Ag
 open Aardvark.Base.Incremental
 open Aardvark.UI
 open Aardvark.UI.Primitives
@@ -63,6 +64,9 @@ module App =
 
             ]
 
+
+
+
         let slides (content : list<list<DomNode<'msg>>>) =
             require Html.semui (
                 require reveal (
@@ -79,36 +83,33 @@ module App =
                     )
                 )
             )
+            
+        let show att (scene : ISg<Orbit.Message>) =
+            let box : IMod<Box3d> = scene?GlobalBoundingBox()
+            let b = box.GetValue()
 
-        let subapp (app : App<'model, 'mmodel, 'msg>) : DomNode<'m2> =
-            failwith ""
+            let r = b.Size.Length
+            let phi = 45.0 * Constant.RadiansPerDegree
+            let theta = 30.0 * Constant.RadiansPerDegree
 
-        let embedded = 
-            subapp {
-                initial = Unchecked.defaultof<CameraControllerState>
-                update = CameraController.update
-                view = fun mm -> 
-                
-                    DomNode.RenderControl(
-                        AttributeMap.ofList [ style "width: 50%; height: 50%; background: #222"],
-                        Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
-                        AList.ofList [
-                            Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
-                            RenderCommand.SceneGraph sg
-                        ],
-                        None
-                    )
-                    |> CameraController.withControls m.cameraState id frustum
-
-                threads = CameraController.threads
-                unpersist = Unpersist.instance<CameraControllerState, MCameraControllerState>
-            }
-
-
+            subApp att (
+                Orbit.app' b.Center phi theta r scene
+            )
             
         slides [
             [
-                div [style "background: red; width: 50%; height: 50%"][]
+                //div [style "background: red; width: 50%; height: 50%"][]
+
+                show [style "width: 85%; height: 85%; background: #FFFFFF" ] (
+                    Sg.box (Mod.constant C4b.Green) (Mod.constant Box3d.Unit)
+                        |> Sg.shader {
+                            do! DefaultSurfaces.trafo
+                            do! DefaultSurfaces.vertexColor
+                            do! DefaultSurfaces.simpleLighting
+                        }
+                )
+                
+
             ]
             [
                 h2 [] [text "I am cube"]
