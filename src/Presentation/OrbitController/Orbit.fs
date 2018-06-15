@@ -145,7 +145,7 @@ module Orbit =
     let view (scene : ISg<Message>) (m : MOrbitModel) =
         let attributes =
             AttributeMap.ofListCond [
-                always <| style "width: 100%; height: 100%"
+                always <| style "width: 100%; height: 100%; background: #222"
 
                 always <| onMouseDown (fun b p -> Down(b,p))
                 always <| onMouseUp (fun b p -> Up(b,p))
@@ -155,8 +155,16 @@ module Orbit =
                 always <| onWheel (fun delta -> Scroll delta.Y)
 
             ]
-
-        Incremental.renderControl m.camera attributes (scene)
+        DomNode.RenderControl(
+            attributes,
+            m.camera,
+            AList.ofList [
+                Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
+                RenderCommand.SceneGraph scene
+            ],
+            None
+        )
+       // Incremental.renderControl m.camera attributes (scene)
 
     let viewBox =
         view (
