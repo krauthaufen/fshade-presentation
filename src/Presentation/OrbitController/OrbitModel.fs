@@ -3,6 +3,19 @@
 open Aardvark.Base
 open Aardvark.Base.Incremental
 
+type OrbitConfig =
+    {
+        radiusRange         : Range1d
+        thetaRange          : Range1d
+        decay               : float
+        autoRotateSpeed     : V2d
+        autoRotateDelay     : MicroTime
+
+        orbitSensitivity    : float
+        zoomSensitivity     : float
+        scrollSensitivity   : float
+    }
+
 [<DomainType>]
 type OrbitModel =
     {
@@ -11,15 +24,17 @@ type OrbitModel =
         theta       : float
         radius      : float
 
-        radiusRange : Range1d
-        thetaRange  : Range1d
+        [<NonIncremental>]
+        config      : OrbitConfig
+
+        lastAction  : MicroTime
 
         startRot    : V2i
         startZoom   : V2i
         rotating    : bool
         zooming     : bool
         moveSpeed   : float
-        time        : float
+        time        : MicroTime
         camera      : Camera
     }
 

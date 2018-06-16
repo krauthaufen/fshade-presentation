@@ -17,6 +17,8 @@
     <Compile Include="OrbitController\OrbitModel.fs" />
     <Compile Include="OrbitController\Orbit.fs" />
     <EmbeddedResource Include="fixes.css" />
+    <Compile Include="PresentationModel.fs" />
+    <Compile Include="Presentation.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Model.g.fs" />
     <Compile Include="App.fs" />

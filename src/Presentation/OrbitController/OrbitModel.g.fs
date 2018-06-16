@@ -17,8 +17,7 @@ module Mutable =
         let _phi = ResetMod.Create(__initial.phi)
         let _theta = ResetMod.Create(__initial.theta)
         let _radius = ResetMod.Create(__initial.radius)
-        let _radiusRange = ResetMod.Create(__initial.radiusRange)
-        let _thetaRange = ResetMod.Create(__initial.thetaRange)
+        let _lastAction = ResetMod.Create(__initial.lastAction)
         let _startRot = ResetMod.Create(__initial.startRot)
         let _startZoom = ResetMod.Create(__initial.startZoom)
         let _rotating = ResetMod.Create(__initial.rotating)
@@ -31,8 +30,8 @@ module Mutable =
         member x.phi = _phi :> IMod<_>
         member x.theta = _theta :> IMod<_>
         member x.radius = _radius :> IMod<_>
-        member x.radiusRange = _radiusRange :> IMod<_>
-        member x.thetaRange = _thetaRange :> IMod<_>
+        member x.config = __current.Value.config
+        member x.lastAction = _lastAction :> IMod<_>
         member x.startRot = _startRot :> IMod<_>
         member x.startZoom = _startZoom :> IMod<_>
         member x.rotating = _rotating :> IMod<_>
@@ -50,8 +49,7 @@ module Mutable =
                 ResetMod.Update(_phi,v.phi)
                 ResetMod.Update(_theta,v.theta)
                 ResetMod.Update(_radius,v.radius)
-                ResetMod.Update(_radiusRange,v.radiusRange)
-                ResetMod.Update(_thetaRange,v.thetaRange)
+                ResetMod.Update(_lastAction,v.lastAction)
                 ResetMod.Update(_startRot,v.startRot)
                 ResetMod.Update(_startZoom,v.startZoom)
                 ResetMod.Update(_rotating,v.rotating)
@@ -99,17 +97,17 @@ module Mutable =
                     override x.Set(r,v) = { r with radius = v }
                     override x.Update(r,f) = { r with radius = f r.radius }
                 }
-            let radiusRange =
-                { new Lens<Aardvark.UI.OrbitModel, Aardvark.Base.Range1d>() with
-                    override x.Get(r) = r.radiusRange
-                    override x.Set(r,v) = { r with radiusRange = v }
-                    override x.Update(r,f) = { r with radiusRange = f r.radiusRange }
+            let config =
+                { new Lens<Aardvark.UI.OrbitModel, Aardvark.UI.OrbitConfig>() with
+                    override x.Get(r) = r.config
+                    override x.Set(r,v) = { r with config = v }
+                    override x.Update(r,f) = { r with config = f r.config }
                 }
-            let thetaRange =
-                { new Lens<Aardvark.UI.OrbitModel, Aardvark.Base.Range1d>() with
-                    override x.Get(r) = r.thetaRange
-                    override x.Set(r,v) = { r with thetaRange = v }
-                    override x.Update(r,f) = { r with thetaRange = f r.thetaRange }
+            let lastAction =
+                { new Lens<Aardvark.UI.OrbitModel, Aardvark.Base.MicroTime>() with
+                    override x.Get(r) = r.lastAction
+                    override x.Set(r,v) = { r with lastAction = v }
+                    override x.Update(r,f) = { r with lastAction = f r.lastAction }
                 }
             let startRot =
                 { new Lens<Aardvark.UI.OrbitModel, Aardvark.Base.V2i>() with
@@ -142,7 +140,7 @@ module Mutable =
                     override x.Update(r,f) = { r with moveSpeed = f r.moveSpeed }
                 }
             let time =
-                { new Lens<Aardvark.UI.OrbitModel, System.Double>() with
+                { new Lens<Aardvark.UI.OrbitModel, Aardvark.Base.MicroTime>() with
                     override x.Get(r) = r.time
                     override x.Set(r,v) = { r with time = v }
                     override x.Update(r,f) = { r with time = f r.time }

@@ -23,7 +23,7 @@ let main args =
     let app = new HeadlessVulkanApplication(true)
 
     WebPart.startServer 4321 [
-        MutableApp.toWebPart' app.Runtime false (App.start App.app)
+        MutableApp.toWebPart' app.Runtime false (App.start App.newApp)
         Reflection.assemblyWebPart (Assembly.GetEntryAssembly())
     ]
 
