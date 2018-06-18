@@ -14,6 +14,7 @@
     <RunWorkingDirectory>$(OutputPath)\netcoreapp2.0</RunWorkingDirectory>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="reveal.js" />
     <Compile Include="OrbitController\OrbitModel.fs" />
     <Compile Include="OrbitController\Orbit.fs" />
     <EmbeddedResource Include="fixes.css" />
@@ -24,5 +25,6 @@
     <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -70,13 +70,13 @@ module Presentation =
         [
             { kind = Stylesheet; name = "reveal"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css" }
             { kind = Stylesheet; name = "revealdark"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/black.min.css" }
-            { kind = Script; name = "reveal"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/js/reveal.js" }
+            { kind = Script; name = "reveal"; url = "./reveal.js" }
             { kind = Stylesheet; name = "revealfixes"; url = "fixes.css" }
         ]
         
     let private boot =
         String.concat " ; " [
-            "Reveal.initialize({ width: '100%', height: '100%', margin: 0, minScale: 0.1, maxScale: 1.0, viewDistance: 10000 });"
+            "Reveal.initialize({ width: 1920, height: 1080, margin: 0, minScale: 0.2, maxScale: 2.0 });"
             "Reveal.addEventListener( 'slidechanged', function( e ) { aardvark.processEvent('__ID__', 'slidechanged', e.indexh, e.indexv); });"
             "Reveal.addEventListener( 'overviewshown', function( event ) { aardvark.processEvent('__ID__', 'overview', 1) } );"
             "Reveal.addEventListener( 'overviewhidden', function( event ) { aardvark.processEvent('__ID__', 'overview', 0) } );"
@@ -203,14 +203,20 @@ module Presentation =
                 
         
         let time =
-            //let timer = new MultimediaTimer.Trigger(8)
-
             let sw = System.Diagnostics.Stopwatch.StartNew()
+
+            let v = MVar.create sw.MicroTime
+            let m = new MultimediaTimer.Trigger(16)
+            let run() =
+                while true do
+                    m.Wait()
+                    MVar.put v sw.MicroTime
+            let thread = Thread(ThreadStart(run), IsBackground = true)
+            thread.Start()
 
             let rec run(last : MicroTime) =
                 proclist {
-                    do! Async.Sleep(8)
-                    let now = sw.MicroTime
+                    let! now = MVar.takeAsync v
                     yield TimePassed(now, now - last)
                     yield! run(now)
                 }

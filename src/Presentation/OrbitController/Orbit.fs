@@ -228,7 +228,7 @@ module Orbit =
 
     let app' (center : V3d) (phi : float) (theta : float) (radius : float) (scene : ISg<Message>) =
         {
-            initial = withCamera { initial with phi = phi; theta = theta; radius = radius }
+            initial = withCamera { initial with phi = phi; theta = theta; radius = radius; center = center }
             update = update
             view = view scene
             threads = threads
