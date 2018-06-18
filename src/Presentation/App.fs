@@ -4,12 +4,33 @@ open System
 open Aardvark.Base
 open Aardvark.Base.Ag
 open Aardvark.Base.Incremental
+open Aardvark.Base.Incremental.Operators
 open Aardvark.UI
 open Aardvark.UI.Primitives
 open Aardvark.Base.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
 open Aardvark.SceneGraph.IO
+
+
+[<AutoOpen>]
+module ``FShade Extensions`` =
+    open FShade
+
+    type LightDirAttribute() = inherit FShade.SemanticAttribute("LightDirection")
+    type CamDirAttribute() = inherit FShade.SemanticAttribute("CameraDirection")
+    type SpecularColorAttribute() = inherit FShade.SemanticAttribute("SpecularColor")
+
+    type UniformScope with
+        member x.AmbientColor : V4d = x?Material?AmbientColor
+        member x.DiffuseColor : V4d = x?Material?DiffuseColor
+        member x.EmissiveColor : V4d = x?Material?EmissiveColor
+        member x.ReflectiveColor : V4d = x?Material?ReflectiveColor
+        member x.SpecularColor : V4d = x?Material?SpecularColor
+        member x.Shininess : float = x?Material?Shininess
+        member x.BumpScale : float = x?Material?BumpScale
+
+
 
 [<AutoOpen>]
 module Show =
@@ -91,214 +112,131 @@ type Message =
     | CameraMessage of CameraControllerMessage
 
 module App =
-    
-    //let initial = { fill = true; currentModel = Box; cameraState = CameraController.initial }
-
-    //let update (m : Model) (msg : Message) =
-    //    match msg with
-    //        | ToggleFill ->
-    //            { m  with fill = not m.fill }
-
-    //        | ToggleModel -> 
-    //            match m.currentModel with
-    //                | Box -> { m with currentModel = Sphere }
-    //                | Sphere -> { m with currentModel = Box }
-
-    //        | CameraMessage msg ->
-    //            { m with cameraState = CameraController.update m.cameraState msg }
-
-    //let view (m : MModel) =
-
-    //    let frustum = 
-    //        Frustum.perspective 60.0 0.1 100.0 1.0 
-    //            |> Mod.constant
-
-    //    let sg =
-    //        m.currentModel |> Mod.map (fun v ->
-    //            match v with
-    //                | Box -> Sg.box (Mod.constant C4b.Red) (Mod.constant (Box3d(-V3d.III, V3d.III)))
-    //                | Sphere -> Sg.sphere 5 (Mod.constant C4b.Green) (Mod.constant 1.0)
-    //        )
-    //        |> Sg.dynamic
-    //        |> Sg.fillMode (m.fill |> Mod.map (function true -> FillMode.Fill | false -> FillMode.Line))
-    //        |> Sg.shader {
-    //            do! DefaultSurfaces.trafo
-    //            do! DefaultSurfaces.simpleLighting
-    //        }
-
-    //    let att =
-    //        [
-    //            style "width: 100pt; height: 100pt"
-    //        ]
-
-    //    let reveal =
-    //        [
-    //            { kind = Stylesheet; name = "reveal"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css" }
-    //            { kind = Stylesheet; name = "revealdark"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/black.min.css" }
-    //            { kind = Script; name = "reveal"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/js/reveal.js" }
-    //            { kind = Stylesheet; name = "revealfixes"; url = "fixes.css" }
-
-    //        ]
-
-
-
-    //    let boot =
-    //        String.concat " ; " [
-    //            "Reveal.initialize({ width: '100%', height: '100%', margin: 0, minScale: 0.1, maxScale: 1.0});"
-    //            "Reveal.addEventListener( 'slidechanged', function( e ) { aardvark.processEvent('__ID__', 'slidechanged', e.indexh, e.indexv); });"
-    //        ]
-
-    //    let slides (content : list<list<DomNode<'msg>>>) =
-    //        require Html.semui (
-    //            require reveal (
-    //                onBoot boot (
-    //                    div [clazz "reveal"; onEvent' "slidechanged" [] (fun a -> Log.warn "%A" a; Seq.empty) ] [
-    //                        div [ clazz "slides" ] (
-    //                            content |> List.map (fun c -> 
-    //                                section [style "width: 100%; height: 100%"] [
-    //                                    div [ clazz "root" ] c 
-    //                                ]
-    //                            )
-    //                        )
-    //                    ]
-    //                )
-    //            )
-    //        )
-
-    //    let slides (content : list<list<DomNode<'msg>>>) =
-    //        require Html.semui (
-    //            require reveal (
-    //                onBoot boot (
-    //                    div [clazz "reveal"; onEvent' "slidechanged" [] (fun a -> Log.warn "%A" a; Seq.empty) ] [
-    //                        div [ clazz "slides" ] (
-    //                            content |> List.map (fun c -> 
-    //                                section [style "width: 100%; height: 100%"] [
-    //                                    div [ clazz "root" ] c 
-    //                                ]
-    //                            )
-    //                        )
-    //                    ]
-    //                )
-    //            )
-    //        )         
-    //    //let show att (scene : ISg<Orbit.Message>) =
-    //    //    let box : IMod<Box3d> = scene?GlobalBoundingBox()
-    //    //    let b = box.GetValue()
-
-    //    //    let r = b.Size.Length
-    //    //    let phi = 45.0 * Constant.RadiansPerDegree
-    //    //    let theta = 30.0 * Constant.RadiansPerDegree
-
-    //    //    let app = Orbit.app' b.Center phi theta r scene
-    //    //    subApp att (
-    //    //        { app with
-    //    //            initial = { app.initial with config = app.initial.config }
-    //    //        }
-    //    //    )
-            
-    //    slides [
-    //        [
-    //            //div [style "background: red; width: 50%; height: 50%"][]
-                
-    //            h2 [] [text "Show Builder"]
-    //            text "The show builder provides an easy mechanism to show a scene using a simple orbit controller"
-    //            show {
-    //                att (style "width: 85%; height: 70%; background: #FFFFFF")
-    //                scene (
-    //                    Sg.box (Mod.constant C4b.Green) (Mod.constant Box3d.Unit)
-    //                    |> Sg.shader {
-    //                        do! DefaultSurfaces.trafo
-    //                        do! DefaultSurfaces.vertexColor
-    //                        do! DefaultSurfaces.simpleLighting
-    //                    }
-    //                )
-    //            }
-
-    //            //show [style "width: 85%; height: 85%; background: #FFFFFF" ] (
-    //            //    Sg.box (Mod.constant C4b.Green) (Mod.constant Box3d.Unit)
-    //            //        |> Sg.shader {
-    //            //            do! DefaultSurfaces.trafo
-    //            //            do! DefaultSurfaces.vertexColor
-    //            //            do! DefaultSurfaces.simpleLighting
-    //            //        }
-    //            //)
-                
-
-    //        ]
-    //        [
-    //            h2 [] [text "I am cube"]
-
-                
-    //            DomNode.RenderControl(
-    //                AttributeMap.ofList [ style "width: 50%; height: 50%; background: #222"],
-    //                Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
-    //                AList.ofList [
-    //                    Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
-    //                    RenderCommand.SceneGraph sg
-    //                ],
-    //                None
-    //            )
-    //            |> CameraController.withControls m.cameraState CameraMessage frustum
-                
-    //            ul [] [
-    //                li [] [text "Bullet 1"]
-    //                li [] [text "Bullet 2"]
-    //                li [] [ 
-    //                    text "Wireframe: "
-    //                    div [ clazz "ui mini toggle checkbox"] [
-    //                        input [attribute "type" "checkbox"; onChange (fun _ -> ToggleFill) ]
-    //                        label [] []
-    //                    ]
-    //                ]
-    //            ]
-
-    //        ]
-    //        [
-    //            h1 [] [text "Hi There"]
-    //            ul [] [
-    //                li [] [text "Bullet 1"]
-    //                li [] [text "Bullet 2"]
-    //            ]
-    //        ]
-
-
-    //        [
-    //            div [ style "width: 100%; height: 100%"] [
-    //                img [attribute "src" "https://upload.wikimedia.org/wikipedia/commons/e/e0/Clouds_over_the_Atlantic_Ocean.jpg"]
-    //            ]
-    //        ]
-
-    //        //    //div [style "position: fixed; left: 20px; top: 20px"] [
-    //        //    //    button [onClick (fun _ -> ToggleModel)] [text "Toggle Model"]
-    //        //    //]
-    //        //]
-    //        //[
-    //        //    DomNode.RenderControl(
-    //        //        AttributeMap.ofList [ style "position: relative; left: 0; top: 0; width: 100%; height: calc(100% - 50px)"],
-    //        //        Mod.map (fun v -> { cameraView = v; frustum = Frustum.perspective 60.0 0.1 100.0 1.0 }) m.cameraState.view,
-    //        //        AList.ofList [
-    //        //            Aardvark.UI.RenderCommand.Clear(Some (Mod.constant C4f.VRVisGreen), Some (Mod.constant 1.0))
-    //        //            RenderCommand.SceneGraph sg
-    //        //        ],
-    //        //        None
-    //        //    )
-    //        //    |> CameraController.withControls m.cameraState CameraMessage frustum
-     
-    //        //]
-    //    ]
-
-    //let app =
-    //    {
-    //        initial = initial
-    //        update = update
-    //        view = view
-    //        threads = Model.Lens.cameraState.Get >> CameraController.threads >> ThreadPool.map CameraMessage
-    //        unpersist = Unpersist.instance
-    //    }
-
+ 
 
     module Eigi =
         open Aardvark.Base.Incremental.Operators
+    // defines all shaders used
+        module Shader =
+            open FShade
+
+            type Vertex =
+                {
+                    [<Position>]    pos : V4d
+                    [<Normal>]      n : V3d
+                    [<BiNormal>]    b : V3d
+                    [<Tangent>]     t : V3d
+                    [<TexCoord>]    tc : V2d
+
+                    [<LightDir>]    l : V3d
+                    [<CamDir>]      c : V3d
+                    [<Color>]       color : V4d
+                    [<SpecularColor>] spec : V4d
+                    [<SamplePosition>] sp : V2d
+                }
+
+            // define some samplers
+            let diffuseColor =
+                sampler2d {
+                    texture uniform?DiffuseColorTexture
+                    filter Filter.Anisotropic
+                    addressU WrapMode.Wrap
+                    addressV WrapMode.Wrap
+                }
+
+            let specularColor =
+                sampler2d {
+                    texture uniform?SpecularColorTexture
+                    filter Filter.Anisotropic
+                    addressU WrapMode.Wrap
+                    addressV WrapMode.Wrap
+                }
+
+            let normalMap =
+                sampler2d {
+                    texture uniform?NormalMapTexture
+                    filter Filter.Anisotropic
+                    addressU WrapMode.Wrap
+                    addressV WrapMode.Wrap
+                }
+
+
+            // transform a vertex with all its attributes
+            let transform (v : Vertex) =
+                vertex {
+                    let light = uniform.LightLocation
+                    let wp = uniform.ModelTrafo.TransformPos(v.pos.XYZ)
+
+                    return {
+                        pos = uniform.ModelViewProjTrafo * v.pos
+                        n = uniform.ModelViewTrafoInv.TransposedTransformDir v.n
+                        b = uniform.ModelViewTrafo.TransformDir v.b
+                        t = uniform.ModelViewTrafo.TransformDir v.t
+                        tc = v.tc
+                        sp = v.sp
+
+                        l = uniform.ViewTrafo.TransformDir(light - wp)
+                        c = -uniform.ViewTrafo.TransformPos(wp)
+                        color = uniform.DiffuseColor
+                        spec = uniform.SpecularColor
+                    }
+
+                }
+        
+            // change the per-fragment normal according to the NormalMap
+            let normalMapping (v : Vertex) =
+                fragment {
+                    let vn = normalMap.Sample(v.tc).XYZ
+                    let tn = vn * 2.0 - V3d.III |> Vec.normalize
+                    
+                    let n = Vec.normalize v.n
+                    let b = Vec.normalize v.b
+                    let t = Vec.normalize v.t
+
+                    return { v with n = b * tn.X + t * tn.Y +  n * tn.Z }
+                }
+
+            // change the per-fragment color using the DiffuseTexture
+            let diffuseTexture (v : Vertex) =
+                fragment {
+                    return diffuseColor.Sample(v.tc)
+                }
+
+            // change the per-fragment specularColor using the SpecularMap
+            let specularTexture (v : Vertex) =
+                fragment {
+                    return { v with spec = specularColor.Sample(v.tc) }
+                }
+
+            // apply per-fragment lighting
+            let lighting (v : Vertex) =
+                fragment {
+                    let n = Vec.normalize v.n
+                    let l = Vec.normalize v.l
+                    let c = Vec.normalize v.c
+
+                    let diffuse     = Vec.dot n l |> clamp 0.0 1.0
+                    let spec        = Vec.dot (Vec.reflect l n) (-c) |> clamp 0.0 1.0
+
+                    let diff    = v.color
+                    let specc   = v.spec.XYZ
+                    let shine   = uniform.Shininess
+
+
+                    let color = diff.XYZ * diffuse  +  specc * pow spec shine
+
+                    return V4d(color, v.color.W)
+                }
+        
+            // per-fragment alpha test using the current color
+            let alphaTest (v : Vertex) =
+                fragment {
+                    let dummy = v.sp.X * 0.0000001
+                    if v.color.W < 0.05 + dummy then
+                        discard()
+
+                    return v
+                }
 
         module Skinning = 
             open FShade
@@ -416,6 +354,7 @@ module App =
         let scene = Loader.Assimp.loadFrom @"C:\Users\Schorsch\Desktop\raptor\raptor.dae" (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
         
         module Animation =
+            let none    = Range1d(50.0, 51.0)
             let idle    = Range1d(50.0, 100.0)
             let walk    = Range1d(0.0, 36.0)
             let attack  = Range1d(150.0, 180.0)
@@ -447,50 +386,101 @@ module App =
                             yield Trafo3d.Translation(float x, float y, 0.0)
                 |]
 
-        let sg (time : IMod<MicroTime>)= 
+        let sg (anim : Range1d) (time : IMod<MicroTime>)= 
             scene 
                 |> Sg.adapter
                 |> Sg.uniform "Bones" ~~Animation.allBones
                 |> Sg.uniform "NumFrames" ~~Animation.numFrames
                 |> Sg.uniform "NumBones" ~~Animation.numBones
                 |> Sg.uniform "Framerate" ~~Animation.fps
-                |> Sg.uniform "FrameRange" ~~(V2d(0.0, 36.0))
+                |> Sg.uniform "FrameRange" ~~(V2d(anim.Min, anim.Max))
                 |> Sg.uniform "Time" (time |> Mod.map (fun m -> m.TotalSeconds))
                 |> Sg.uniform "TimeOffset" ~~0.0
                 |> Sg.transform (Trafo3d.FromBasis(V3d.IOO, V3d.OOI, V3d.OIO, V3d.Zero) * Trafo3d.Scale 20.0)
                 // apply all shaders we have
-                |> Sg.shader {
-                    do! Skinning.skinning
-                    do! DefaultSurfaces.trafo
-                    do! DefaultSurfaces.diffuseTexture
-                    do! DefaultSurfaces.simpleLighting
-                }
+                
 
     let newApp =
+        
+
+        let many (sgs : list<ISg<_>>) =
+            let rec manyAcc pass sgs =
+                match sgs with
+                    | [] -> Sg.empty
+                    | [s] -> s |> Sg.pass pass
+                    | h :: t ->
+                        let name = Guid.NewGuid() |> string
+                        Sg.ofList [
+                            h |> Sg.pass pass                            
+                            manyAcc (RenderPass.after name RenderPassOrder.Arbitrary pass) t
+                        ]
+            let bb = 
+                match sgs with
+                    | h :: _ -> h?GlobalBoundingBox()
+                    | _ -> Mod.constant Box3d.Unit
+            let res = manyAcc RenderPass.main sgs
+            res?GlobalBoundingBox <- bb
+            res
+
+
         Presentation.ofSlides [
 
             Slide.slide [] (fun m ->
                 [
                     h1 [] [ text "FShade" ]
-                    h4 [] [ text "Functional Shaders" ]
+                    h3 [] [ text "a functional approach to shaders" ]
                     text "Georg Haaser"
                 ]
             )
+
             Slide.slide [] (fun m ->
                 [
                     div [clazz "simple"] [
-                        h2 [ clazz "header" ] [ text "Motivation" ]
+                        h1 [ clazz "header" ] [ text "What are shaders?" ]
                         div [ clazz "content" ] [
                             ul [] [
-                                li [] [ text "asdasd" ]
-                                li [] [ text "asasddasd" ]
-                                li [] [ text "assadadasd" ]
-                                li [] [ text "asasdasd" ]
+                                li [] [ text "total functions" ]
+                                li [] [ text "multiple in-/outputs" ]
+                                li [] [ text "partial programs for hardware stages" ]
+                                li [] [ 
+                                    text "two "
+                                    u [] [text "semantic"]
+                                    text " domains"
+                                    ul [] [
+                                        li [] [ text "primitives / vertices" ]
+                                        li [] [ text "fragments" ]
+                                    ] 
+                                ]
                             ]
                         ]
                     ]
                 ]
             )
+
+            Slide.slide [] (fun m ->
+                [
+                    div [clazz "simple"] [
+                        h1 [ clazz "header" ] [ text "Why another shader language?" ]
+                        div [ clazz "content" ] [
+                            div [ clazz "horizontal" ] [                          
+                                ul [] [
+                                    li [] [ text "GLSL/HLSL lack proper abstraction" ]
+                                    li [] [ text "first class shader representation" ]
+                                    li [] [ text "multiple target languages" ]
+                                    li [] [ text "dynamic specialization" ]
+                                ]
+                                img [ style "margin-left: 50pt"; attribute "src" "http://www.fshade.org/images/ShadowMapCaster.png"]
+
+                                
+
+                            ]                            
+                        ]
+
+
+                    ]
+                ]
+            )
+
             Slide.slide [] (fun m ->
                 let c = m.isActive |> Mod.map (function true -> "Active" | false -> "Inactive")
 
@@ -515,15 +505,106 @@ module App =
             //    ]
             //)
 
+            Slide.slide [] (fun m ->
+                [
+                    show {
+                        att (style "width: 85%; height: 70%")
+                        scene (
+                            Eigi.sg Eigi.Animation.none m.time                                
+                                |> Sg.shader {
+                                    do! Eigi.Skinning.skinning
+                                    do! DefaultSurfaces.trafo
+                                    do! DefaultSurfaces.constantColor C4f.Gray80
+                                    do! DefaultSurfaces.simpleLighting
+                                }                       
+                        )
+                    }
+                ]
+            )
+
+
+            Slide.slide [] (fun m ->
+                [
+                    show {
+                        att (style "width: 85%; height: 70%; background: #FFFFFF")
+                        scene (
+                            Eigi.sg Eigi.Animation.none m.time
+                            |> Sg.shader {
+                                do! Eigi.Skinning.skinning
+                                do! Eigi.Shader.transform
+                                //do! Eigi.Shader.diffuseTexture
+                                //do! Eigi.Shader.alphaTest
+
+                                do! Eigi.Shader.specularTexture
+                                do! Eigi.Shader.normalMapping
+                                do! Eigi.Shader.lighting
+                            }
+                        )
+                    }
+                ]
+            )
+
+            Slide.slide [] (fun m ->
+                [
+                    show {
+                        att (style "width: 85%; height: 70%; background: #FFFFFF")
+                        scene (
+                            Eigi.sg Eigi.Animation.idle m.time
+                            |> Sg.shader {
+                                do! Eigi.Skinning.skinning
+                                do! Eigi.Shader.transform
+                                do! Eigi.Shader.diffuseTexture
+                                do! Eigi.Shader.alphaTest
+
+                                do! Eigi.Shader.specularTexture
+                                do! Eigi.Shader.normalMapping
+                                do! Eigi.Shader.lighting
+                            }
+                        )
+                    }
+                ]
+            )
+
+            Slide.slide [] (fun m ->
+                [
+                    show {
+                        att (style "width: 85%; height: 70%; background: #FFFFFF")
+                        scene (
+                            Eigi.sg Eigi.Animation.walk m.time
+                            |> Sg.shader {
+                                do! Eigi.Skinning.skinning
+                                do! Eigi.Shader.transform
+                                do! Eigi.Shader.diffuseTexture
+                                do! Eigi.Shader.alphaTest
+
+                                do! Eigi.Shader.specularTexture
+                                do! Eigi.Shader.normalMapping
+                                do! Eigi.Shader.lighting
+                            }
+                        )
+                    }
+                ]
+            )
+
             Slide.nested
                 (
                     Slide.slide [] (fun m ->
                         [
-                            h2 [] [text "Show Builder"]
-                            text "The show builder provides an easy mechanism to show a scene using a simple orbit controller"
                             show {
                                 att (style "width: 85%; height: 70%; background: #FFFFFF")
-                                scene (Eigi.sg m.time)
+                                scene (
+                                    Eigi.sg Eigi.Animation.none m.time
+                                    |> Sg.shader {
+                                        do! Eigi.Skinning.skinning
+                                        do! Eigi.Shader.transform
+                                        do! Eigi.Shader.diffuseTexture
+                                        do! Eigi.Shader.alphaTest
+
+                                        do! Eigi.Shader.specularTexture
+                                        do! Eigi.Shader.normalMapping
+                                        do! Eigi.Shader.lighting
+                                    }
+                                )
                             }
                         ]
                     )

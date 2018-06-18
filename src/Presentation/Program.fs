@@ -10,7 +10,7 @@ open Aardvark.Base
 open System
 open Suave
 open System.Reflection
-
+open Aardvark.Application.Slim
 
 
 
@@ -20,7 +20,8 @@ let main args =
     Aardvark.Init()
     Aardium.init()
 
-    let app = new HeadlessVulkanApplication(false)
+
+    let app = new OpenGlApplication()
 
     WebPart.startServer 4321 [
         MutableApp.toWebPart' app.Runtime false (App.start App.newApp)

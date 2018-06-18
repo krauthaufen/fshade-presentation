@@ -197,12 +197,20 @@ module Orbit =
         DomNode.RenderControl(
             attributes,
             m.camera,
-            AList.ofList [
-                Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
-                RenderCommand.SceneGraph scene
-            ],
+            scene,
+            false,
             None
         )
+
+        // DomNode.RenderControl(
+        //     attributes,
+        //     m.camera,
+        //     AList.ofList [
+        //         Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
+        //         RenderCommand.SceneGraph scene
+        //     ],
+        //     None
+        // )
         //let id = System.Guid.NewGuid() |> string
         //page (fun r ->
         //    match Map.tryFind "scene" r.queryParams with

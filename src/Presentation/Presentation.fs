@@ -76,10 +76,17 @@ module Presentation =
         
     let private boot =
         String.concat " ; " [
-            "Reveal.initialize({ width: 1920, height: 1080, margin: 0, minScale: 0.2, maxScale: 2.0 });"
+            "Reveal.initialize({ width: 1280, height: 720, margin: 0, minScale: 0.5, maxScale: 2.0, viewDistance: 1000 });"
             "Reveal.addEventListener( 'slidechanged', function( e ) { aardvark.processEvent('__ID__', 'slidechanged', e.indexh, e.indexv); });"
             "Reveal.addEventListener( 'overviewshown', function( event ) { aardvark.processEvent('__ID__', 'overview', 1) } );"
             "Reveal.addEventListener( 'overviewhidden', function( event ) { aardvark.processEvent('__ID__', 'overview', 0) } );"
+
+
+            "var link = document.createElement( 'link' );"
+            "link.rel = 'stylesheet';"
+            "link.type = 'text/css';"
+            "link.href = window.location.search.match( /print-pdf/gi ) ? 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/print/pdf.css' : 'https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/print/paper.css';"
+            "document.getElementsByTagName( 'head' )[0].appendChild( link );"
         ]
 
     let ofSlides (slides : list<Slide>) =
