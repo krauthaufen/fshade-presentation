@@ -19,6 +19,7 @@ module Show =
             orbitConfig  : OrbitConfig
             phi : float
             theta : float
+            r : Option<float>
             scene : ISg<Orbit.Message>
             attributes : list<string * string>
         }
@@ -31,11 +32,16 @@ module Show =
                 theta = 30.0 * Constant.RadiansPerDegree
                 scene = Sg.empty
                 attributes = []
+                r = None
             }
-
+                
         [<CustomOperation("phi")>]
         member x.Phi(s : ShowConfig, phi : float) =
             { s with phi = phi }
+            
+        [<CustomOperation("distance")>]
+        member x.Dist(s : ShowConfig, phi : float) =
+            { s with r = Some phi }
 
         [<CustomOperation("theta")>]
         member x.Theta(s : ShowConfig, theta : float) =
@@ -44,6 +50,10 @@ module Show =
         [<CustomOperation("scene")>]
         member x.Scene(s : ShowConfig, scene : ISg<Orbit.Message>) =
             { s with scene = scene }
+             
+        [<CustomOperation("rotDelay")>]
+        member x.RotDelay(s : ShowConfig, scene : float) =
+            { s with orbitConfig = { s.orbitConfig with autoRotateDelay = MicroTime(TimeSpan.FromSeconds scene) } }
             
         [<CustomOperation("att")>]
         member x.Att(s : ShowConfig, (k,v) : string * AttributeValue<'msg>) =
@@ -57,9 +67,9 @@ module Show =
             let box : IMod<Box3d> = c.scene?GlobalBoundingBox()
             let b = box.GetValue()
 
-            let r = b.Size.Length
-            let phi = 45.0 * Constant.RadiansPerDegree
-            let theta = 30.0 * Constant.RadiansPerDegree
+            let r = match c.r with | Some r -> r | _ -> b.Size.Length
+            let phi = c.phi
+            let theta = c.theta
             
             let app = Orbit.app' b.Center phi theta r c.scene
             let att = c.attributes |> List.map (fun (k,v) -> k, AttributeValue.String v)
@@ -76,8 +86,6 @@ module Show =
                     initial = 
                         { app.initial with 
                             config = c.orbitConfig 
-                            phi = c.phi
-                            theta = c.theta
                         }
                     threads = fun t -> ThreadPool.remove "time" (app.threads t)
                 }
@@ -301,6 +309,46 @@ module App =
                     )
                 ]
             )
-            
 
+            
+            Slide.slide [] (fun m ->
+                [
+                    img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/geom.svg" ]
+                ]
+            )
+
+            Slide.slide [] (fun m ->
+                [
+                    show {
+                        att (style "width: 100%; height: 100%")
+                        rotDelay 1000000.0
+                        distance 3.0
+                        phi Constant.PiHalf
+                        theta 0.0
+                        scene GS.sg
+                    }
+                ]
+            )
+            
+            Slide.slide [] (fun m ->
+                [
+                    h2 [] [ text "Questions?" ] 
+                    show {
+                        att (style "width: 100%; height: 80%")
+                        scene (
+                            Eigi.sg ~~Eigi.Animation.walk m.time
+                                |> Sg.shader {
+                                    do! Eigi.Skinning.skinning
+                                    do! Eigi.Shader.transform
+
+                                    do! Eigi.Shader.diffuseTexture
+                                    do! Eigi.Shader.alphaTest
+                                    do! Eigi.Shader.specularTexture
+                                    do! Eigi.Shader.normalMapping
+                                    do! Eigi.Shader.lighting
+                                }
+                        )
+                    }
+                ]
+            )
         ]

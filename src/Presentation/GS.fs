@@ -5,6 +5,7 @@ open Aardvark.Base
 open Aardvark.Base.Ag
 open Aardvark.Base.Incremental
 open Aardvark.Base.Incremental.Operators
+open Aardvark.SceneGraph
 open Aardvark.UI
 open Aardvark.UI.Primitives
 open Aardvark.Base.Rendering
@@ -19,7 +20,7 @@ module GS =
     module Shader =
         open FShade
 
-        type Vertex = { [<Position>] p : V4d; [<WorldPosition>] wp : V4d; [<Color>] c : V4d; [<Normal>] n : V3d; [<Semantic("LightDir")>] ldir : V3d }
+        type Vertex = { [<Position>] p : V4d; [<WorldPosition>] wp : V4d; [<Color>] c : V4d; [<Normal>] n : V3d; [<Semantic("LightDir")>] ldir : V3d; [<SourceVertexIndex>] id : int }
 
         let divide (v : Triangle<Vertex>) =
             triangle {
@@ -33,9 +34,21 @@ module GS =
                 // 0 1 c   c 1 2   c 2 0
                 yield { v.P0 with n = nDiv }
                 yield { v.P1 with n = nDiv }
-                yield { p = uniform.ViewProjTrafo * cpDiv; wp = cpDiv; c = V4d.IIII; n = nDiv; ldir = V3d.Zero}
+                yield { p = uniform.ViewProjTrafo * cpDiv; wp = cpDiv; c = V4d.IIII; n = nDiv; ldir = V3d.Zero; id = 0}
+                restartStrip()
+
+                yield { p = uniform.ViewProjTrafo * cpDiv; wp = cpDiv; c = V4d.IIII; n = nDiv; ldir = V3d.Zero; id = 1}
+                yield { v.P1 with n = nDiv }
+                yield { v.P2 with n = nDiv }
+                restartStrip()
+                
+                yield { p = uniform.ViewProjTrafo * cpDiv; wp = cpDiv; c = V4d.IIII; n = nDiv; ldir = V3d.Zero; id = 2}
                 yield { v.P2 with n = nDiv }
                 yield { v.P0 with n = nDiv }
+                restartStrip()
+
+                //yield { v.P2 with n = nDiv }
+                //yield { v.P0 with n = nDiv }
             }
 
         let shrink (v : Triangle<Vertex>) =
@@ -145,27 +158,27 @@ module GS =
                 let whExt = V4d(phExt, 1.0)
 
 
-                yield { wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; c = v.P0.c; ldir = V3d.Zero }
-                yield { wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; c = v.P1.c; ldir = V3d.Zero }
-                yield { wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; c = v.P2.c; ldir = V3d.Zero }
+                yield { v.P0 with wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; ldir = V3d.Zero }
+                yield { v.P1 with wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; ldir = V3d.Zero }
+                yield { v.P2 with wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; ldir = V3d.Zero }
                 restartStrip()
 
                 let nExt = computeNormal w0Ext w1Ext whExt
-                yield { wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; c = v.P0.c; ldir = V3d.Zero }
-                yield { wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; c = v.P1.c; ldir = V3d.Zero }
-                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero }
+                yield { wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; c = v.P0.c; ldir = V3d.Zero; id = 0 }
+                yield { wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; c = v.P1.c; ldir = V3d.Zero; id = 0}
+                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero; id = 0 }
                 restartStrip()
 
                 let nExt = computeNormal w1Ext w2Ext whExt
-                yield { wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; c = v.P1.c; ldir = V3d.Zero }
-                yield { wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; c = v.P2.c; ldir = V3d.Zero }
-                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero }
+                yield { wp = w1Ext; p = uniform.ViewProjTrafo * w1Ext; n = nExt; c = v.P1.c; ldir = V3d.Zero; id = 0 }
+                yield { wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; c = v.P2.c; ldir = V3d.Zero; id = 0 }
+                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero; id = 0 }
                 restartStrip()
 
                 let nExt = computeNormal w2Ext w0Ext whExt
-                yield { wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; c = v.P2.c; ldir = V3d.Zero }
-                yield { wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; c = v.P0.c; ldir = V3d.Zero }
-                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero }
+                yield { wp = w2Ext; p = uniform.ViewProjTrafo * w2Ext; n = nExt; c = v.P2.c; ldir = V3d.Zero; id = 0 }
+                yield { wp = w0Ext; p = uniform.ViewProjTrafo * w0Ext; n = nExt; c = v.P0.c; ldir = V3d.Zero; id = 0 }
+                yield { wp = whExt; p = uniform.ViewProjTrafo * whExt; n = nExt; c = V4d.IOII; ldir = V3d.Zero; id = 0 }
                 restartStrip()
 
 
@@ -179,10 +192,10 @@ module GS =
 
     let available = 
         [ 
-            "divide", toEffect Shader.divide
-            "shrink", toEffect Shader.shrink 
-            "extrude", toEffect Shader.extrude
-//                "invert", toEffect Shader.invert
+            "div", toEffect Shader.divide
+            "shr", toEffect Shader.shrink 
+            "ext", toEffect Shader.extrude
+//            "invert", toEffect Shader.invert
 //                "tricolor", toEffect Shader.tricolor
         ]
 
@@ -223,44 +236,61 @@ module GS =
 
     let font = Font("Consolas")
 
-    let sg =
-        Sg.ofList [
-            for j in 0 .. h - 1 do
-                for i in 0 .. w - 1 do
-                    let id = i + w * j
-                    if id < combinations.Length then
-                        let (name, effect) = combinations.[id]
+    let sg<'a> : ISg<'a> =
+        let sg = 
+            Sg.ofList [
+                for j in 0 .. h - 1 do
+                    for i in 0 .. w - 1 do
+                        let id = i + w * j
+                        if id < combinations.Length then
+                            let (name, effect) = combinations.[id]
      
-                        let label = 
-                            Sg.text font C4b.White (Mod.constant name)
-                                |> Sg.transform (Trafo3d.FromBasis(V3d.IOO, V3d.OOI, V3d.OIO, V3d.Zero) * Trafo3d.Scale(0.1))
-                                |> Sg.translate 0.0 0.0 1.0
+                            let label = 
+                                Sg.text font C4b.White (Mod.constant name)
+                                    //|> Sg.billboard
+                                    |> Sg.noEvents
+                                    |> Sg.transform (Trafo3d.FromBasis(V3d.IOO, V3d.OOI, V3d.OIO, V3d.Zero) * Trafo3d.Scale(0.2))
+                                    |> Sg.translate 0.0 0.0 1.0
 
-                        let inner = 
-                            Sg.ofList [
-                                Sg.sphere' 3 C4b.Red 0.5
-                                    |> Sg.translate 0.5 0.5 0.5
-                                    |> Sg.uniform "Color" (Mod.constant V4d.IOOI)
+                            let inner = 
+                                Sg.ofList [
+                                    Sg.sphere' 3 C4b.Red 0.5
+                                        |> Sg.noEvents
+                                        |> Sg.translate 0.5 0.5 0.5
+                                        |> Sg.uniform "Color" (Mod.constant V4d.IOOI)
 
-                                Sg.box' C4b.Blue Box3d.Unit
-                                    |> Sg.uniform "Color" (Mod.constant V4d.IIOI)
-                                    |> Sg.translate 1.6 0.0 0.0
-                            ]   
-                            |> Sg.scale 0.5
-                            |> Sg.shader {
-                                do! DefaultSurfaces.trafo
-                                do! effect
-                                do! Shader.withLightDir
-                                do! DefaultSurfaces.stableHeadlight
-                            }
-                        yield 
-                            Sg.ofList [
-                                inner
-                                label
-                            ]
-                            |> Sg.translate (2.0 * float i) 0.0 (1.5 * float j)
+                                    Sg.box' C4b.Blue Box3d.Unit
+                                    |> Sg.noEvents
+                                        |> Sg.uniform "Color" (Mod.constant V4d.IIOI)
+                                        |> Sg.translate 1.6 0.0 0.0
+                                ]   
+                                |> Sg.scale 0.5
 
-        ]
-        |> Sg.scale 0.5
-        |> Sg.transform (Trafo3d.FromBasis(-V3d.IOO,V3d.OIO, V3d.OOI, V3d.OOO))
-    
+                                |> Sg.shader {
+                                    do! DefaultSurfaces.trafo
+                                    do! effect
+                                    do! Shader.withLightDir
+                                    do! DefaultSurfaces.stableHeadlight
+                                }
+                            yield 
+                                Sg.ofList [
+                                    inner
+                                    label
+                                ]
+                                |> Sg.translate (2.0 * float i) 0.0 (1.5 * float j)
+
+            ]
+            |> Sg.scale 0.5
+            |> Sg.transform (Trafo3d.FromBasis(-V3d.IOO,V3d.OIO, V3d.OOI, V3d.OOO))
+            
+            // maxX = 0
+            // minX = -(2 * (w - 1) + 1.3)*0.5
+            
+            // minY = 0
+            // maxY = 0.25
+            
+            // minZ = 0
+            // maxZ = (1.5 * (h - 1) + 0.5)* 0.5
+
+        sg?GlobalBoundingBox <- ~~Box3d(V3d(-(2.0 * float (w - 1) + 1.3)*0.5, 0.0, 0.0), V3d(0.0, 0.25, (1.5 * float (h - 1) + 0.5)* 0.5))
+        sg
