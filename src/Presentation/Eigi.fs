@@ -590,7 +590,7 @@ module EigiApp =
             yield subApp' mapOut mapIn att { app with threads = fun m -> app.threads m |> ThreadPool.remove "time" }
             
             yield 
-                div [ style "position: absolute; top: 40pt; left: 40pt" ] [
+                div [ style "position: absolute; top: 40pt; left: 10pt" ] [
                     table [
                         [ text "transform";         toggle m.transform ToggleTransform              ]
                         [ text "skinning";          toggle m.skinning ToggleSkinning                ]
@@ -610,9 +610,9 @@ module EigiApp =
                 ]
 
             yield
-                div [ style "position: absolute; top: 20pt; right: 10pt; bottom: 40pt; font-size: 13pt; text-align: left; width: 32%" ] [
+                div [ style "position: absolute; top: 20pt; right: 10pt; bottom: 40pt; font-size: 13pt; text-align: left; width: 30%" ] [
                     onBoot' ["code", Mod.channel glslCode ] boot (
-                        DomNode<_>("pre", None, AttributeMap.ofList [style "height: 95%; background: rgba(34,34,34,0.7)"; clazz "hljs glsl"] , DomContent.Empty)
+                        DomNode<_>("pre", None, AttributeMap.ofList [style "height: 95%; background: rgba(34,34,34,0.5)"; clazz "hljs glsl scrollable-content"] , DomContent.Empty)
                     )
                 ]
 

@@ -75,3 +75,26 @@ div.horizontal {
 .reveal td > span {
     color: #fff;
 }
+
+
+.scrollable-content {
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+.scrollable-content::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.scrollable-content::-webkit-scrollbar * {
+    background: transparent;
+}
+
+.scrollable-content::-webkit-scrollbar-corner {
+    background: transparent !important;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2) !important;
+}

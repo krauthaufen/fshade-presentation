@@ -329,7 +329,36 @@ module App =
                     }
                 ]
             )
-            
+
+            Slide.slide [] (fun m ->
+                [
+                    h2 [] [ text "Advanced Techniques" ] 
+                    
+                    ul [] [
+                        li [] [ text "instancing" ]
+                        li [] [ text "single pass stereo" ]
+                        li [] [ text "platform adjustments (depth range, etc.)" ]
+                        li [] [ text "specialization" ]
+                        li [] [ text "unification" ]
+                        li [] [ text "many more..." ]
+
+                    ]
+
+                ]
+            )
+            Slide.slide [] (fun m ->
+                [
+                    h2 [] [ text "Limitations" ] 
+                    
+                    ul [] [
+                        li [] [ text "lambda functions" ]
+                        li [] [ text "recursive functions and types" ]
+                        li [] [ text "dynamic allocation" ]
+                        li [] [ text "OOP constructs (references, subtyping, etc.)" ]
+                    ]
+
+                ]
+            )
             Slide.slide [] (fun m ->
                 [
                     h2 [] [ text "Questions?" ] 
@@ -349,6 +378,12 @@ module App =
                                 }
                         )
                     }
+
+                    div [ style "font-size: 16pt" ] [
+                        text "Thanks to Manuel Wieser for the Eigi Model,"
+                        a [ attribute "href" "http://www.manuelwieser.com/" ] [ text "www.manuelwieser.com" ]
+                    ]
+
                 ]
             )
         ]
