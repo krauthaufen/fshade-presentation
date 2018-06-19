@@ -197,18 +197,18 @@ module App =
                 ]
             )
 
-            Slide.slide [] (fun m ->
+            Slide.slide [ attribute "data-transition" "slide-in none-out"; attribute "data-transition-speed" "fast" ] (fun m ->
                 [
                     img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/comp1.svg" ]
                 ]
             )
-            Slide.slide [] (fun m ->
+            Slide.slide [ attribute "data-transition" "none-in none-out"; attribute "data-transition-speed" "fast" ] (fun m ->
                 [
                     img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/comp2.svg" ]
                 ]
             )
 
-            Slide.slide [] (fun m ->
+            Slide.slide [ attribute "data-transition" "none-in slide-out"; attribute "data-transition-speed" "fast" ] (fun m ->
                 [
                     img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/comp3.svg" ]
                 ]
@@ -321,7 +321,7 @@ module App =
                 [
                     show {
                         att (style "width: 100%; height: 100%")
-                        rotDelay 1000000.0
+                        rotDelay 100000000.0
                         distance 3.0
                         phi Constant.PiHalf
                         theta 0.0

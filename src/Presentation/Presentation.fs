@@ -20,6 +20,7 @@ type PresentationMessage =
 
 type Slide =
     {
+        att         : list<string * AttributeValue<PresentationMessage>>
         content     : App<SlideModel, MSlideModel, SlideMessage>
         subSlides   : list<Slide>
     }
@@ -27,15 +28,16 @@ type Slide =
 
 module Slide =
     
-    let slide (att : list<string * AttributeValue<SlideMessage>>) (view : MSlideModel -> list<DomNode<SlideMessage>>) =
-        { 
+    let slide (att : list<string * AttributeValue<PresentationMessage>>) (view : MSlideModel -> list<DomNode<SlideMessage>>) =
+        {   
+            att = att
             content = 
                 {
                     initial = { isActive = false; time = MicroTime.Zero; activeSince = MicroTime.Zero; isOverview = false }
                     view = fun m -> 
                         let att =
                             AttributeMap.ofListCond [
-                                yield! att |> List.map always
+                                //yield! att |> List.map always
                                 yield always <| clazz "root"
                                 yield onlyWhen m.isOverview <| style "pointer-events: none"
 
@@ -115,7 +117,7 @@ module Presentation =
                 match considerSub, c.subSlides with
                     | true, [] 
                     | false, _ ->
-                        section [style "width: 100%; height: 100%"] [
+                        section ((style "width: 100%; height: 100%")::c.att) [
                     
                             let mapIn (model : SlideModel) (msg : PresentationMessage) =
                         
