@@ -70,3 +70,8 @@ div.horizontal {
     justify-content: flex-start;
     flex-direction: row;
 }
+
+
+.reveal td > span {
+    color: #fff;
+}

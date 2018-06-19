@@ -47,7 +47,9 @@ module Slide =
                         match msg with
                             | SlideMessage.Activate -> { m with isActive = true; activeSince = m.time }
                             | SlideMessage.Deactivate ->  { m with isActive = false; activeSince = MicroTime.Zero }
-                            | SlideMessage.TimePassed(n,d) -> { m with time = n }
+                            | SlideMessage.TimePassed(n,d) -> 
+                                if m.isActive then { m with time = n }
+                                else m
                             | SlideMessage.OpenOverview -> { m with isOverview = true }
                             | SlideMessage.CloseOverview -> { m with isOverview = false }
 
@@ -71,9 +73,14 @@ module Presentation =
             { kind = Stylesheet; name = "reveal"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/reveal.min.css" }
             { kind = Stylesheet; name = "revealdark"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/css/theme/black.min.css" }
             { kind = Script; name = "reveal"; url = "./reveal.js" }
+            { kind = Script; name = "reveal-highlight"; url = "https://cdnjs.cloudflare.com/ajax/libs/reveal.js/3.6.0/plugin/highlight/highlight.js" }
+            { kind = Stylesheet; name = "hjs"; url = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/railscasts.min.css" }
+     
             { kind = Stylesheet; name = "revealfixes"; url = "fixes.css" }
         ]
-        
+
+    //https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/railscasts.min.css
+       
     let private boot =
         String.concat " ; " [
             "Reveal.initialize({ width: 1280, height: 720, margin: 0, minScale: 0.5, maxScale: 2.0, viewDistance: 1000 });"
@@ -81,7 +88,7 @@ module Presentation =
             "Reveal.addEventListener( 'overviewshown', function( event ) { aardvark.processEvent('__ID__', 'overview', 1) } );"
             "Reveal.addEventListener( 'overviewhidden', function( event ) { aardvark.processEvent('__ID__', 'overview', 0) } );"
 
-
+            "hljs.configure({ tabReplace: '    ', useBR: true });"
             "var link = document.createElement( 'link' );"
             "link.rel = 'stylesheet';"
             "link.type = 'text/css';"

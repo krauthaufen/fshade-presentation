@@ -4,6 +4,7 @@ open System
 open Aardvark.Base
 open Aardvark.Base.Incremental
 open Aardvark.UI.Primitives
+open Aardvark.UI
 
 type Primitive =
     | Box
@@ -19,3 +20,21 @@ type Model =
         fill            : bool
         cameraState     : CameraControllerState
     }
+    
+   
+[<DomainType>]
+type EigiModel =
+    {
+        time : MicroTime
+        
+        transform : bool
+        skinning : bool
+        diffuseTexture : bool
+        alphaTest : bool
+        specularTexture : bool
+        normalMapping : bool
+        lighting : bool
+
+        animation : Range1d
+
+    }   

@@ -22,6 +22,8 @@
     <Compile Include="Presentation.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Model.g.fs" />
+    <Compile Include="Eigi.fs" />
+    <Compile Include="GS.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
