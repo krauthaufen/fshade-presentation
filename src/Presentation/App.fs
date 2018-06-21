@@ -363,7 +363,7 @@ module App =
                 [
                     h2 [] [ text "Questions?" ] 
                     show {
-                        att (style "width: 100%; height: 80%")
+                        att (style "width: 100%; height: 60%")
                         scene (
                             Eigi.sg ~~Eigi.Animation.walk m.time
                                 |> Sg.shader {
@@ -378,10 +378,15 @@ module App =
                                 }
                         )
                     }
+                    div [ style "font-size: 16pt" ] [
+                        a [ attribute "target" "blank"; attribute "href"  "http://www.github.com/krauthaufen/FShade"] [ text "github.com/krauthaufen/FShade" ]
+                        br []
+                        a [ attribute "target" "blank"; attribute "href"  "http://www.fshade.org"] [ text "fshade.org" ]
+                    ]
 
                     div [ style "font-size: 16pt" ] [
                         text "Thanks to Manuel Wieser for the Eigi Model,"
-                        a [ attribute "href" "http://www.manuelwieser.com/" ] [ text "www.manuelwieser.com" ]
+                        a [ attribute "target" "blank"; attribute "href" "http://www.manuelwieser.com/" ] [ text "www.manuelwieser.com" ]
                     ]
 
                 ]
