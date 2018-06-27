@@ -20,19 +20,27 @@ let main args =
     Aardvark.Init()
     Aardium.init()
 
+    let port = 
+        match args with
+            | [| port |] ->
+                match Int32.TryParse port with
+                    | (true, p) -> p
+                    | _ -> 4321
+            | _ ->
+                4321
 
     let app = new OpenGlApplication()
 
-    WebPart.startServer 4321 [
+    WebPart.runServer port [
         MutableApp.toWebPart' app.Runtime false (App.start App.newApp)
         Reflection.assemblyWebPart (Assembly.GetEntryAssembly())
     ]
 
-    Aardium.run {
-        title "Aardvark rocks \\o/"
-        width 1024
-        height 768
-        url "http://localhost:4321/"
-    }
+    //Aardium.run {
+    //    title "Aardvark rocks \\o/"
+    //    width 1024
+    //    height 768
+    //    url "http://localhost:4321/"
+    //}
 
     0
