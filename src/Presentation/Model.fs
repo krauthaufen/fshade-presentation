@@ -33,6 +33,7 @@ type EigiModel =
         alphaTest : bool
         specularTexture : bool
         normalMapping : bool
+        shrink : bool
         lighting : bool
 
         animation : Range1d

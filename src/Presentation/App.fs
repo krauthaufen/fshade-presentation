@@ -290,7 +290,9 @@ module App =
                         let app = EigiApp.app
                         let mapIn (_model : EigiModel) (msg : SlideMessage) =
                             match msg with
-                                | SlideMessage.TimePassed(n,d) -> Seq.singleton (EigiApp.Message.TimePassed(n,d))
+                                | SlideMessage.TimePassed(n,d) -> 
+                                    //Log.warn "eigi time: %A" n
+                                    Seq.singleton (EigiApp.Message.TimePassed(n,d))
                                 | _ -> Seq.empty
 
                         [

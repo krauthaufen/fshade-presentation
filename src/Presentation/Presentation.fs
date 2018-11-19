@@ -85,7 +85,7 @@ module Presentation =
        
     let private boot =
         String.concat " ; " [
-            "Reveal.initialize({ width: 1280, height: 720, margin: 0, minScale: 0.5, maxScale: 2.0, viewDistance: 1000 });"
+            "Reveal.initialize({ width: 1600, height: 900, margin: 0, minScale: 0.5, maxScale: 2.0, viewDistance: 1000 });"
             "Reveal.addEventListener( 'slidechanged', function( e ) { aardvark.processEvent('__ID__', 'slidechanged', e.indexh, e.indexv); });"
             "Reveal.addEventListener( 'overviewshown', function( event ) { aardvark.processEvent('__ID__', 'overview', 1) } );"
             "Reveal.addEventListener( 'overviewhidden', function( event ) { aardvark.processEvent('__ID__', 'overview', 0) } );"
@@ -102,9 +102,7 @@ module Presentation =
 
         let rec all (slide : Slide) =
             slide :: (slide.subSlides |> List.collect all)
-
-
-
+            
         let initial =
             {
                 active      = { horizontal = 0; vertical = 0 }
@@ -140,6 +138,9 @@ module Presentation =
                                     | _ ->
                                         Seq.empty
 
+                            let mapOut (m : SlideModel) (msg : SlideMessage) =
+                                Seq.empty
+
                             let content =
                                 if index.horizontal = 0 && index.vertical = 0 then
                                     { c.content with initial = { c.content.initial with isActive = true } }
@@ -148,7 +149,7 @@ module Presentation =
 
                             let app = 
                                 subApp' 
-                                    (fun _ _ -> Seq.empty) 
+                                    mapOut
                                     mapIn
                                     [ clazz "root" ]
                                     content
@@ -202,9 +203,11 @@ module Presentation =
                     )
                 )
             )
-            
-        let update (m : PresentationModel) (msg : PresentationMessage) =
+
+ 
+        let rec update (m : PresentationModel) (msg : PresentationMessage) =
             match msg with
+
                 | Activate index ->
                     { m with active = index  }
 

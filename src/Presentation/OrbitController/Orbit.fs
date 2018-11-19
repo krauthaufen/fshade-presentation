@@ -72,22 +72,22 @@ module Orbit =
 
         }
 
+    let private sw = lazy (System.Diagnostics.Stopwatch.StartNew())
+    //let private time =
+    //    let sw = System.Diagnostics.Stopwatch.StartNew()
+    //    let rec proc(last : MicroTime) = 
+    //        proclist {
+    //            do! Async.Sleep 8
+    //            let now = sw.MicroTime
+    //            yield TimePassed(now, now - last)
+    //            yield! proc(now)
+    //        }
+    //    proc(sw.MicroTime)
 
-    let private time =
-        let sw = System.Diagnostics.Stopwatch.StartNew()
-        let rec proc(last : MicroTime) = 
-            proclist {
-                do! Async.Sleep 8
-                let now = sw.MicroTime
-                yield TimePassed(now, now - last)
-                yield! proc(now)
-            }
-        proc(sw.MicroTime)
+    //let threads (m : OrbitModel) =
+    //    ThreadPool.empty |> ThreadPool.add "time" time
 
-    let threads (m : OrbitModel) =
-        ThreadPool.empty |> ThreadPool.add "time" time
-
-    let update (m : OrbitModel) (msg : Message) =
+    let rec update (m : OrbitModel) (msg : Message) =
         match msg with
             | TimePassed(now, dt) ->
                 let dt = dt.TotalSeconds |> clamp 0.0 (1.0 / 10.0)
@@ -175,14 +175,13 @@ module Orbit =
                 { m with 
                     moveSpeed = m.moveSpeed + delta 
                 }
-                    
-                //Log.warn "delta: %A" delta
-                //m
-                
+
     let view (scene : ISg<Message>) (m : MOrbitModel) =
         let attributes =
             AttributeMap.ofListCond [
                 always <| style "width: 100%; height: 100%; background: #222; min-width: 1px; min-height: 1px"
+                
+                always <| attribute "data-samples" "8"
 
                 always <| onMouseDown (fun b p -> Down(b,p))
                 always <| onMouseUp (fun b p -> Up(b,p))
@@ -190,39 +189,17 @@ module Orbit =
                 onlyWhen (m.rotating %|| m.zooming) <| onMouseMove (fun p -> Move p)
 
                 always <| onWheel (fun delta -> Scroll delta.Y)
-
                 
             ]
-
+            
         DomNode.RenderControl(
             attributes,
             m.camera,
             scene,
-            false,
+            RenderControlConfig.standard,
             None
         )
-
-        // DomNode.RenderControl(
-        //     attributes,
-        //     m.camera,
-        //     AList.ofList [
-        //         Aardvark.UI.RenderCommand.Clear(Some (Mod.constant (C4b(34uy, 34uy, 34uy, 255uy).ToC4f())), Some (Mod.constant 1.0))
-        //         RenderCommand.SceneGraph scene
-        //     ],
-        //     None
-        // )
-        //let id = System.Guid.NewGuid() |> string
-        //page (fun r ->
-        //    match Map.tryFind "scene" r.queryParams with
-        //        | Some name when name = id ->
-        //            )
-        //        | _ ->  
-        //            DomNode<_>("iframe", None, AttributeMap.ofList [ attribute "src" (sprintf "./?scene=%s" id) ], DomContent.Empty)
-        //            //iframe [ attribute "data-src" (sprintf "./?scene=%s" id) ] []
-        //            //div [] []
-        //)
-       // Incremental.renderControl m.camera attributes (scene)
-
+        
     let viewBox =
         view (
             Sg.box (Mod.constant C4b.Green) (Mod.constant Box3d.Unit)
@@ -239,7 +216,7 @@ module Orbit =
             initial = withCamera { initial with phi = phi; theta = theta; radius = radius; center = center }
             update = update
             view = view scene
-            threads = threads
+            threads = fun _ -> ThreadPool.empty
             unpersist = Unpersist.instance
         }
 
@@ -249,7 +226,7 @@ module Orbit =
             initial = initial
             update = update
             view = viewBox
-            threads = threads
+            threads = fun _ -> ThreadPool.empty
             unpersist = Unpersist.instance
         }
 

@@ -43,7 +43,7 @@ module ``FShade Extensions`` =
                 "code.onmessage = function(c) { document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', c, true).value };"
             ]
         onBoot' ["code", Mod.channel code ] boot (
-            DomNode<_>("pre", None, AttributeMap.ofList (clazz ("hljs " + lang) :: att) , DomContent.Empty)
+            DomNode.Element("pre", None, AttributeMap.ofList (clazz ("hljs " + lang) :: att))
         )
  
 
@@ -66,6 +66,7 @@ module Eigi =
                 [<Color>]       color : V4d
                 [<SpecularColor>] spec : V4d
                 [<SamplePosition>] sp : V2d
+                [<SourceVertexIndex>] id : int
             }
 
         // define some samplers
@@ -124,10 +125,28 @@ module Eigi =
                     c = -uniform.ViewTrafo.TransformPos(wp)
                     color = uniform.DiffuseColor
                     spec = uniform.SpecularColor
+                    id = 0
                 }
 
             }
         
+        let shrink (v : Triangle<Vertex>) =
+            triangle {
+            
+                let cp = (v.P0.pos.XYZ + v.P1.pos.XYZ + v.P2.pos.XYZ) / 3.0
+                
+                let r = 0.9
+
+                let a = V4d(cp * (1.0 - r) + v.P0.pos.XYZ * r, v.P0.pos.W)
+                let b = V4d(cp * (1.0 - r) + v.P1.pos.XYZ * r, v.P1.pos.W)
+                let c = V4d(cp * (1.0 - r) + v.P2.pos.XYZ * r, v.P2.pos.W)
+
+                yield { v.P0 with pos = a } 
+                yield { v.P1 with pos = b } 
+                yield { v.P2 with pos = c } 
+
+            }
+
         // change the per-fragment normal according to the NormalMap
         let normalMapping (v : Vertex) =
             fragment {
@@ -348,6 +367,7 @@ module EigiApp =
     type Message =
         | ToggleTransform
         | ToggleSkinning
+        | ToggleShrink
         | ToggleTexture
         | ToggleAlphaTest
         | ToggleSpecular
@@ -365,6 +385,7 @@ module EigiApp =
             alphaTest       = false
             specularTexture = false
             normalMapping   = false
+            shrink          = false
             lighting        = true
             animation       = Eigi.Animation.none
         }
@@ -379,6 +400,9 @@ module EigiApp =
 
             | ToggleSkinning ->
                 { model with skinning = not model.skinning }
+
+            | ToggleShrink ->
+                { model with shrink = not model.shrink }
                 
             | ToggleTexture ->
                 { model with diffuseTexture = not model.diffuseTexture }
@@ -442,6 +466,7 @@ module EigiApp =
             let eSpec       = FShade.Effect.ofFunction Eigi.Shader.specularTexture
             let eNormal     = FShade.Effect.ofFunction Eigi.Shader.normalMapping
             let eLight      = FShade.Effect.ofFunction Eigi.Shader.lighting
+            let eShrink     = FShade.Effect.ofFunction Eigi.Shader.shrink
 
             let worstShaders =
                 [
@@ -482,11 +507,12 @@ module EigiApp =
                 let getShader (key : list<bool>) =
                     cache.GetOrCreate(key, fun key -> 
                         match key with
-                        | [ transform; skinning; diffuseTexture; alphaTest; specularTexture; normalMapping; lighting ] ->
+                        | [ transform; shrink; skinning; diffuseTexture; alphaTest; specularTexture; normalMapping; lighting ] ->
                             FShade.Effect.compose [
                                 yield eBoot
                                 if skinning then yield eSkinning
                                 if transform then yield eTransform
+                                if shrink then yield eShrink
                                 if diffuseTexture then yield eTexture
                                 if alphaTest then yield eAlphaTest
                                 if specularTexture then yield eSpec
@@ -497,18 +523,19 @@ module EigiApp =
                             FShade.Effect.empty
                     )
                     
-                for v in all 7 do getShader v |> ignore
+                for v in all 8 do getShader v |> ignore
 
 
                 Mod.custom (fun t ->
                     let transform = m.transform.GetValue t
+                    let shrink = m.shrink.GetValue t
                     let skinning = m.skinning.GetValue t
                     let diffuseTexture = m.diffuseTexture.GetValue t
                     let alphaTest = m.alphaTest.GetValue t
                     let specularTexture = m.specularTexture.GetValue t
                     let normalMapping = m.normalMapping.GetValue t
                     let lighting = m.lighting.GetValue t
-                    let key = [ transform; skinning; diffuseTexture; alphaTest; specularTexture; normalMapping; lighting ]
+                    let key = [ transform; shrink; skinning; diffuseTexture; alphaTest; specularTexture; normalMapping; lighting ]
                     getShader key
                 )
                
@@ -608,6 +635,7 @@ module EigiApp =
                 div [ style "position: absolute; top: 40pt; left: 10pt" ] [
                     table [
                         [ text "transform";         toggle m.transform ToggleTransform              ]
+                        [ text "shrink";            toggle m.shrink ToggleShrink                    ]
                         [ text "skinning";          toggle m.skinning ToggleSkinning                ]
                         [ text "texture";           toggle m.diffuseTexture ToggleTexture           ] 
                         [ text "alpha-test";        toggle m.alphaTest ToggleAlphaTest              ]

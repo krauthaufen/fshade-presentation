@@ -75,6 +75,7 @@ module Mutable =
         let _alphaTest = ResetMod.Create(__initial.alphaTest)
         let _specularTexture = ResetMod.Create(__initial.specularTexture)
         let _normalMapping = ResetMod.Create(__initial.normalMapping)
+        let _shrink = ResetMod.Create(__initial.shrink)
         let _lighting = ResetMod.Create(__initial.lighting)
         let _animation = ResetMod.Create(__initial.animation)
         
@@ -85,6 +86,7 @@ module Mutable =
         member x.alphaTest = _alphaTest :> IMod<_>
         member x.specularTexture = _specularTexture :> IMod<_>
         member x.normalMapping = _normalMapping :> IMod<_>
+        member x.shrink = _shrink :> IMod<_>
         member x.lighting = _lighting :> IMod<_>
         member x.animation = _animation :> IMod<_>
         
@@ -100,6 +102,7 @@ module Mutable =
                 ResetMod.Update(_alphaTest,v.alphaTest)
                 ResetMod.Update(_specularTexture,v.specularTexture)
                 ResetMod.Update(_normalMapping,v.normalMapping)
+                ResetMod.Update(_shrink,v.shrink)
                 ResetMod.Update(_lighting,v.lighting)
                 ResetMod.Update(_animation,v.animation)
                 
@@ -159,6 +162,12 @@ module Mutable =
                     override x.Get(r) = r.normalMapping
                     override x.Set(r,v) = { r with normalMapping = v }
                     override x.Update(r,f) = { r with normalMapping = f r.normalMapping }
+                }
+            let shrink =
+                { new Lens<Presentation.Model.EigiModel, System.Boolean>() with
+                    override x.Get(r) = r.shrink
+                    override x.Set(r,v) = { r with shrink = v }
+                    override x.Update(r,f) = { r with shrink = f r.shrink }
                 }
             let lighting =
                 { new Lens<Presentation.Model.EigiModel, System.Boolean>() with
