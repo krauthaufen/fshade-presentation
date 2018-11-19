@@ -6,6 +6,7 @@ open Aardvark.Base.Ag
 open Aardvark.Base.Incremental
 open Aardvark.Base.Incremental.Operators
 open Aardvark.UI
+open Aardvark.UI.Generic
 open Aardvark.UI.Primitives
 open Aardvark.Base.Rendering
 open Presentation.Model
@@ -323,6 +324,26 @@ module App =
                             }
                         ]
                     )
+
+                    
+                    Slide.slide [] (fun m ->
+                        let app = StableTrafo.app
+                        let mapIn (_model : StableTrafoModel) (msg : SlideMessage) =
+                            match msg with
+                                | SlideMessage.TimePassed(n,d) -> 
+                                    //Log.warn "eigi time: %A" n
+                                    Seq.singleton (StableTrafo.Message.TimePassed(n,d))
+                                | _ -> Seq.empty
+
+                        [
+                            subApp' (fun _ _ -> Seq.empty<SlideMessage>) mapIn [style "width: 100%; height: 100%"] (
+                                { app with
+                                    threads = fun t -> ThreadPool.remove "time" (app.threads t)
+                                }
+                            )
+                        ]
+                    )
+
                 ]
 
             

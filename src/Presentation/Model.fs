@@ -39,3 +39,10 @@ type EigiModel =
         animation : Range1d
 
     }   
+
+    
+[<DomainType>]
+type StableTrafoModel =
+    {
+        offset : float
+    }

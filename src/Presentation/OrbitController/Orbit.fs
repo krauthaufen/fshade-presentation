@@ -14,6 +14,8 @@ module Orbit =
         | Up of b : MouseButtons * pos : V2i
         | Move of newPos : V2i
         | Scroll of delta : float
+        | SetCenter of pos : V3d
+
 
     let private positivePhi (phi : float) =
         let phi = phi % Constant.PiTimesTwo
@@ -89,6 +91,9 @@ module Orbit =
 
     let rec update (m : OrbitModel) (msg : Message) =
         match msg with
+            | SetCenter c ->
+                withCamera { m with center = c }
+
             | TimePassed(now, dt) ->
                 let dt = dt.TotalSeconds |> clamp 0.0 (1.0 / 10.0)
 
