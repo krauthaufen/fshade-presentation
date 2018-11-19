@@ -11,6 +11,7 @@ open Aardvark.Base.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
 open Aardvark.SceneGraph.IO
+open Presentation
 
 [<AutoOpen>]
 module Show =
@@ -104,20 +105,7 @@ type Message =
 
 
 module App =
-    
-    let unescape (str : string) =
-        str.Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n")
 
-    let code (lang : string) (code : IMod<string>) =
-        let initial = Mod.force code |> unescape
-        let boot =
-            String.concat "\r\n" [
-                "document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', \"" + initial + "\", true).value"
-                "code.onmessage = function(c) { document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', c, true).value };"
-            ]
-        onBoot' ["code", Mod.channel code ] boot (
-            DomNode<_>("pre", None, AttributeMap.ofList [clazz ("hljs " + lang)] , DomContent.Empty)
-        )
 
     let newApp =
         
@@ -153,6 +141,25 @@ module App =
             )
             
            
+
+            Slide.slide [] (fun m ->
+                [
+                    h2 [] [ text "What are shaders?" ]
+                    img [ style "border: none; box-shadow: none"; attribute "src" "http://www.fshade.org/images/pipeline.png" ]
+                    ul [] [
+                        li [] [ text "pure multi-valued-functions" ]
+                        li [] [ text "associated to a hardware stage" ]
+                        li [] [ 
+                            text "inputs"
+                            ul [] [
+                                li [] [ text "frequency: attributes/uniforms" ]
+                                li [] [ text "kind: vertex/primitive/fragment" ]
+                            ]
+                        ]
+                    ]   
+                ]
+            )
+
             Slide.slide [] (fun m ->
                 [
                     h2 [ ] [ text "Why FShade?" ]                      
@@ -162,24 +169,6 @@ module App =
                         li [] [ text "multiple target languages" ]
                     ]
                     img [ style "height: 30%"; attribute "src" "http://www.fshade.org/images/ShadowMapCaster.png"]
-                ]
-            )
-
-            Slide.slide [] (fun m ->
-                [
-                    h2 [] [ text "What are shaders?" ]
-                    img [ style "border: none; box-shadow: none"; attribute "src" "http://www.fshade.org/images/pipeline.png" ]
-                    ul [] [
-                        li [] [ text "pure multi-valued-functions" ]
-                        li [] [ text "partial programs for hardware stages" ]
-                        li [] [ 
-                            text "inputs"
-                            ul [] [
-                                li [] [ text "frequency: attributes/uniforms" ]
-                                li [] [ text "kind: vertex/primitive/fragment" ]
-                            ]
-                        ]
-                    ]   
                 ]
             )
             
@@ -261,7 +250,7 @@ module App =
 
                 [
                     h2 [] [ text "Lighting" ]
-                    code "fsharp" ~~light
+                    code [] "fsharp" ~~light
                 ]
             )
 
@@ -290,45 +279,51 @@ module App =
 
                 [
                     h2 [] [ text "Vertex Transformation" ]
-                    code "fsharp" ~~trafo
+                    code [] "fsharp" ~~trafo
                 ]
             )
             
-            Slide.slide [] (fun m ->
-                let app = EigiApp.app
-                let mapIn (_model : EigiModel) (msg : SlideMessage) =
-                    match msg with
-                        | SlideMessage.TimePassed(n,d) -> Seq.singleton (EigiApp.Message.TimePassed(n,d))
-                        | _ -> Seq.empty
 
+            Slide.nested
+                (
+                    Slide.slide [] (fun m ->
+                        let app = EigiApp.app
+                        let mapIn (_model : EigiModel) (msg : SlideMessage) =
+                            match msg with
+                                | SlideMessage.TimePassed(n,d) -> Seq.singleton (EigiApp.Message.TimePassed(n,d))
+                                | _ -> Seq.empty
+
+                        [
+                            subApp' (fun _ _ -> Seq.empty<SlideMessage>) mapIn [style "width: 100%; height: 100%"] (
+                                { app with
+                                    threads = fun t -> ThreadPool.remove "time" (app.threads t)
+                                }
+                            )
+                        ]
+                    )
+                )
                 [
-                    subApp' (fun _ _ -> Seq.empty<SlideMessage>) mapIn [style "width: 100%; height: 100%"] (
-                        { app with
-                            threads = fun t -> ThreadPool.remove "time" (app.threads t)
-                        }
+                    Slide.slide [] (fun m ->
+                        [
+                            img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/geom.svg" ]
+                        ]
+                    )
+
+                    Slide.slide [] (fun m ->
+                        [
+                            show {
+                                att (style "width: 100%; height: 100%")
+                                rotDelay 100000000.0
+                                distance 3.0
+                                phi Constant.PiHalf
+                                theta 0.0
+                                scene GS.sg
+                            }
+                        ]
                     )
                 ]
-            )
 
             
-            Slide.slide [] (fun m ->
-                [
-                    img [ style "border: none; box-shadow: none; background: transparent"; attribute "src" "http://fshade.org/images/geom.svg" ]
-                ]
-            )
-
-            Slide.slide [] (fun m ->
-                [
-                    show {
-                        att (style "width: 100%; height: 100%")
-                        rotDelay 100000000.0
-                        distance 3.0
-                        phi Constant.PiHalf
-                        theta 0.0
-                        scene GS.sg
-                    }
-                ]
-            )
 
             Slide.slide [] (fun m ->
                 [
@@ -363,7 +358,7 @@ module App =
                 [
                     h2 [] [ text "Questions?" ] 
                     show {
-                        att (style "width: 100%; height: 80%")
+                        att (style "width: 100%; height: 60%")
                         scene (
                             Eigi.sg ~~Eigi.Animation.walk m.time
                                 |> Sg.shader {
@@ -378,10 +373,15 @@ module App =
                                 }
                         )
                     }
+                    div [ style "font-size: 16pt" ] [
+                        a [ attribute "target" "blank"; attribute "href"  "http://www.github.com/krauthaufen/FShade"] [ text "github.com/krauthaufen/FShade" ]
+                        br []
+                        a [ attribute "target" "blank"; attribute "href"  "http://www.fshade.org"] [ text "fshade.org" ]
+                    ]
 
                     div [ style "font-size: 16pt" ] [
                         text "Thanks to Manuel Wieser for the Eigi Model,"
-                        a [ attribute "href" "http://www.manuelwieser.com/" ] [ text "www.manuelwieser.com" ]
+                        a [ attribute "target" "blank"; attribute "href" "http://www.manuelwieser.com/" ] [ text "www.manuelwieser.com" ]
                     ]
 
                 ]

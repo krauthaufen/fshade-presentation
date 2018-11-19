@@ -30,6 +30,21 @@ module ``FShade Extensions`` =
         member x.Shininess : float = x?Material?Shininess
         member x.BumpScale : float = x?Material?BumpScale
 
+
+    
+    let unescape (str : string) =
+        str.Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n")
+
+    let code (att : list<string * AttributeValue<'msg>>) (lang : string) (code : IMod<string>) =
+        let initial = Mod.force code |> unescape
+        let boot =
+            String.concat "\r\n" [
+                "document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', \"" + initial + "\", true).value"
+                "code.onmessage = function(c) { document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', c, true).value };"
+            ]
+        onBoot' ["code", Mod.channel code ] boot (
+            DomNode<_>("pre", None, AttributeMap.ofList (clazz ("hljs " + lang) :: att) , DomContent.Empty)
+        )
  
 
 module Eigi =
@@ -610,10 +625,11 @@ module EigiApp =
                 ]
 
             yield
-                div [ style "position: absolute; top: 20pt; right: 10pt; bottom: 40pt; font-size: 13pt; text-align: left; width: 30%" ] [
-                    onBoot' ["code", Mod.channel glslCode ] boot (
-                        DomNode<_>("pre", None, AttributeMap.ofList [style "height: 95%; background: rgba(34,34,34,0.5)"; clazz "hljs glsl scrollable-content"] , DomContent.Empty)
-                    )
+                div [ style "position: absolute; top: 20pt; right: 10pt; bottom: 40pt; font-size: 14pt; text-align: left; width: 30%" ] [
+                    code [style "height: 95%; background: rgba(34,34,34,0.5)"; clazz "scrollable-content"] "glsl" glslCode
+                    //onBoot' ["code", Mod.channel glslCode ] boot (
+                    //    DomNode<_>("pre", None, AttributeMap.ofList [clazz "hljs glsl scrollable-content"] , DomContent.Empty)
+                    //)
                 ]
 
 
