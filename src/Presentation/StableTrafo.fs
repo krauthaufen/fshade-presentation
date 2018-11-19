@@ -132,6 +132,7 @@ module StableTrafo =
                 |> Sg.translate -1.0 0.0 0.0
                 |> Sg.shader {
                     do! SimpleShaders.trafo
+                    do! DefaultSurfaces.constantColor C4f.Red
                     do! SimpleShaders.simpleLighting
                 }
                 
@@ -139,6 +140,7 @@ module StableTrafo =
                 |> Sg.translate 1.0 0.0 0.0
                 |> Sg.shader {
                     do! StableShaders.stableTrafo
+                    do! DefaultSurfaces.constantColor C4f.Green
                     do! StableShaders.stableLighting
                 }
             ]
@@ -150,7 +152,6 @@ module StableTrafo =
                 match msg with 
                 | SetOffset o -> Seq.singleton (Orbit.SetCenter (V3d(1000.0 * o, 0.0, 0.0))) 
                 | TimePassed(n,d) -> Seq.singleton (Orbit.TimePassed(n,d))
-                | _ -> Seq.empty
 
             subApp'
                 (fun _ _ -> Seq.empty)
