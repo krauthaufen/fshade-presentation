@@ -2,7 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
+    <AdaptifyLocal>true</AdaptifyLocal>
+    <LocalAdaptify>true</LocalAdaptify>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\bin\Debug\</OutputPath>
@@ -10,15 +12,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\bin\Release</OutputPath>
   </PropertyGroup>
-  <PropertyGroup>
-    <RunWorkingDirectory>$(OutputPath)\netcoreapp2.0</RunWorkingDirectory>
-  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="reveal.js" />
     <Compile Include="OrbitController\OrbitModel.fs" />
+    <Compile Include="OrbitController\OrbitModel.g.fs" />
     <Compile Include="OrbitController\Orbit.fs" />
     <EmbeddedResource Include="fixes.css" />
     <Compile Include="PresentationModel.fs" />
+    <Compile Include="PresentationModel.g.fs" />
     <Compile Include="Presentation.fs" />
     <Compile Include="Model.fs" />
     <Compile Include="Model.g.fs" />

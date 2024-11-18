@@ -16,7 +16,6 @@ open Aardvark.Application.Slim
 
 [<EntryPoint>]
 let main args =
-    Ag.initialize()
     Aardvark.Init()
     Aardium.init()
 
@@ -34,7 +33,7 @@ let main args =
     WebPart.startServer port [
         MutableApp.toWebPart' app.Runtime false (App.start App.newApp)
         Reflection.assemblyWebPart (Assembly.GetEntryAssembly())
-    ]
+    ] |> ignore
 
     Aardium.run {
         title "Aardvark rocks \\o/"

@@ -1,7 +1,7 @@
 ﻿namespace Aardvark.UI.Presentation
 
 open Aardvark.Base
-open Aardvark.Base.Incremental
+open Adaptify
 
 type SlideIndex =
     {
@@ -9,7 +9,7 @@ type SlideIndex =
         vertical    : int
     }
 
-[<DomainType>]
+[<ModelType>]
 type SlideModel =
     {
         time        : MicroTime
@@ -18,7 +18,7 @@ type SlideModel =
         activeSince : MicroTime
     }
 
-[<DomainType>] 
+[<ModelType>] 
 type PresentationModel =
     {
         time        : MicroTime

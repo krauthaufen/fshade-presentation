@@ -1,8 +1,9 @@
 ﻿namespace Aardvark.UI.Presentation
 
+open FSharp.Data.Adaptive
 open Aardvark.Base
-open Aardvark.Base.Incremental
 open Aardvark.UI
+open Aardvark.UI.Primitives
 open Aardvark.UI.Presentation
 
 type SlideMessage =
@@ -21,14 +22,14 @@ type PresentationMessage =
 type Slide =
     {
         att         : list<string * AttributeValue<PresentationMessage>>
-        content     : App<SlideModel, MSlideModel, SlideMessage>
+        content     : App<SlideModel, AdaptiveSlideModel, SlideMessage>
         subSlides   : list<Slide>
     }
 
 
 module Slide =
     
-    let slide (att : list<string * AttributeValue<PresentationMessage>>) (view : MSlideModel -> list<DomNode<SlideMessage>>) =
+    let slide (att : list<string * AttributeValue<PresentationMessage>>) (view : AdaptiveSlideModel -> list<DomNode<SlideMessage>>) =
         {   
             att = att
             content = 
@@ -56,7 +57,7 @@ module Slide =
                             | SlideMessage.CloseOverview -> { m with isOverview = false }
 
                     threads = fun _ -> ThreadPool.empty
-                    unpersist = Unpersist.instance<SlideModel, MSlideModel>
+                    unpersist = Unpersist.instance<SlideModel, AdaptiveSlideModel>
                 }
                 
             subSlides =
@@ -110,7 +111,7 @@ module Presentation =
                 overview    = false
             }
         
-        let view (m : MPresentationModel) =
+        let view (m : AdaptivePresentationModel) =
             let rec wrap (considerSub : bool) (index : SlideIndex) (c : Slide) =
                 match considerSub, c.subSlides with
                     | true, [] 

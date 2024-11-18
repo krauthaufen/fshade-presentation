@@ -3,15 +3,15 @@ namespace Presentation
 open System
 open Aardvark.Base
 open Aardvark.Base.Ag
-open Aardvark.Base.Incremental
-open Aardvark.Base.Incremental.Operators
+open FSharp.Data.Adaptive
 open Aardvark.UI
 open Aardvark.UI.Generic
 open Aardvark.UI.Primitives
-open Aardvark.Base.Rendering
+open Aardvark.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
-open Aardvark.SceneGraph.IO
+open Aardvark.SceneGraph.Assimp
+
 open Presentation
 
 [<AutoOpen>]
@@ -66,7 +66,7 @@ module Show =
                     s
 
         member x.Run(c : ShowConfig) : DomNode<SlideMessage> =
-            let box : IMod<Box3d> = c.scene?GlobalBoundingBox()
+            let box : aval<Box3d> = c.scene?GlobalBoundingBox(Ag.Scope.Root)
             let b = box.GetValue()
 
             let r = match c.r with | Some r -> r | _ -> b.Size.Length
@@ -124,8 +124,8 @@ module App =
                         ]
             let bb = 
                 match sgs with
-                    | h :: _ -> h?GlobalBoundingBox()
-                    | _ -> Mod.constant Box3d.Unit
+                    | h :: _ -> h?GlobalBoundingBox(Ag.Scope.Root)
+                    | _ -> AVal.constant Box3d.Unit
             let res = manyAcc RenderPass.main sgs
             res?GlobalBoundingBox <- bb
             res
@@ -251,7 +251,7 @@ module App =
 
                 [
                     h2 [] [ text "Lighting" ]
-                    code [] "fsharp" ~~light
+                    code [] "fsharp" (AVal.constant light)
                 ]
             )
 
@@ -280,7 +280,7 @@ module App =
 
                 [
                     h2 [] [ text "Vertex Transformation" ]
-                    code [] "fsharp" ~~trafo
+                    code [] "fsharp" (AVal.constant trafo)
                 ]
             )
             
@@ -383,7 +383,7 @@ module App =
                     show {
                         att (style "width: 100%; height: 60%")
                         scene (
-                            Eigi.sg ~~Eigi.Animation.walk m.time
+                            Eigi.sg (AVal.constant Eigi.Animation.walk) m.time
                                 |> Sg.shader {
                                     do! Eigi.Skinning.skinning
                                     do! Eigi.Shader.transform

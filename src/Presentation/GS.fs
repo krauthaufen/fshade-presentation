@@ -3,15 +3,14 @@
 open System
 open Aardvark.Base
 open Aardvark.Base.Ag
-open Aardvark.Base.Incremental
-open Aardvark.Base.Incremental.Operators
+open FSharp.Data.Adaptive
 open Aardvark.SceneGraph
 open Aardvark.UI
 open Aardvark.UI.Primitives
-open Aardvark.Base.Rendering
+open Aardvark.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
-open Aardvark.SceneGraph.IO
+open Aardvark.SceneGraph.Assimp
 open Aardvark.Rendering.Text
 
 
@@ -246,7 +245,7 @@ module GS =
                             let (name, effect) = combinations.[id]
      
                             let label = 
-                                Sg.text font C4b.White (Mod.constant name)
+                                Sg.text font C4b.White (AVal.constant name)
                                     //|> Sg.billboard
                                     |> Sg.noEvents
                                     |> Sg.transform (Trafo3d.FromBasis(V3d.IOO, V3d.OOI, V3d.OIO, V3d.Zero) * Trafo3d.Scale(0.2))
@@ -257,11 +256,11 @@ module GS =
                                     Sg.sphere' 3 C4b.Red 0.5
                                         |> Sg.noEvents
                                         |> Sg.translate 0.5 0.5 0.5
-                                        |> Sg.uniform "Color" (Mod.constant V4d.IOOI)
+                                        |> Sg.uniform "Color" (AVal.constant V4d.IOOI)
 
                                     Sg.box' C4b.Blue Box3d.Unit
                                     |> Sg.noEvents
-                                        |> Sg.uniform "Color" (Mod.constant V4d.IIOI)
+                                        |> Sg.uniform "Color" (AVal.constant V4d.IIOI)
                                         |> Sg.translate 1.6 0.0 0.0
                                 ]   
                                 |> Sg.scale 0.5
@@ -292,5 +291,5 @@ module GS =
             // minZ = 0
             // maxZ = (1.5 * (h - 1) + 0.5)* 0.5
 
-        sg?GlobalBoundingBox <- ~~Box3d(V3d(-(2.0 * float (w - 1) + 1.3)*0.5, 0.0, 0.0), V3d(0.0, 0.25, (1.5 * float (h - 1) + 0.5)* 0.5))
+        sg?GlobalBoundingBox <- AVal.constant (Box3d(V3d(-(2.0 * float (w - 1) + 1.3)*0.5, 0.0, 0.0), V3d(0.0, 0.25, (1.5 * float (h - 1) + 0.5)* 0.5)))
         sg

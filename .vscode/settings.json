@@ -11,7 +11,6 @@
         "packages": true,
         "paket-files": true,
         "build.cmd": true,
-        ".gitignore": true,
         "**/obj/": true
     },
     "terminal.integrated.env.linux": {

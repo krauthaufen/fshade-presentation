@@ -3,14 +3,13 @@
 open System
 open Aardvark.Base
 open Aardvark.Base.Ag
-open Aardvark.Base.Incremental
-open Aardvark.Base.Incremental.Operators
+open FSharp.Data.Adaptive
 open Aardvark.UI
 open Aardvark.UI.Primitives
-open Aardvark.Base.Rendering
+open Aardvark.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
-open Aardvark.SceneGraph.IO
+open Aardvark.SceneGraph.Assimp
 
 
 [<AutoOpen>]
@@ -35,20 +34,19 @@ module ``FShade Extensions`` =
     let unescape (str : string) =
         str.Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n")
 
-    let code (att : list<string * AttributeValue<'msg>>) (lang : string) (code : IMod<string>) =
-        let initial = Mod.force code |> unescape
+    let code (att : list<string * AttributeValue<'msg>>) (lang : string) (code : aval<string>) =
+        let initial = AVal.force code |> unescape
         let boot =
             String.concat "\r\n" [
                 "document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', \"" + initial + "\", true).value"
                 "code.onmessage = function(c) { document.getElementById('__ID__').innerHTML = hljs.highlight('" + lang + "', c, true).value };"
             ]
-        onBoot' ["code", Mod.channel code ] boot (
+        onBoot' ["code", AVal.channel code ] boot (
             DomNode.Element("pre", None, AttributeMap.ofList (clazz ("hljs " + lang) :: att))
         )
  
 
 module Eigi =
-    open Aardvark.Base.Incremental.Operators
 // defines all shaders used
     module Shader =
         open FShade
@@ -262,7 +260,7 @@ module Eigi =
             let mutable res = M44d.Zero
             let mutable wSum = 0.0
 
-            let iid = FShade.Imperative.ExpressionExtensions.ShaderIO.ReadInput<int>(Imperative.ParameterKind.Input, FShade.Intrinsics.InstanceId)
+            let iid = FShade.Imperative.ExpressionExtensions.ShaderIO.ReadInput<int>(Imperative.ParameterKind.Input, FShade.Intrinsics.InstanceId, None)
 
             let frame = (uniform.Time + uniform.TimeOffset) * uniform.Framerate
             let range = uniform.FrameRange
@@ -315,7 +313,7 @@ module Eigi =
             }
 
     // load the model
-    let scene = Loader.Assimp.loadFrom @"C:\Users\Schorsch\Desktop\raptor\raptor.dae" (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
+    let scene = Loader.Assimp.loadFrom (Path.combine [__SOURCE_DIRECTORY__; "raptor.dae"]) (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
         
     module Animation =
         let none    = Range1d(50.0, 51.0)
@@ -350,16 +348,16 @@ module Eigi =
                         yield Trafo3d.Translation(float x, float y, 0.0)
             |]
 
-    let sg (anim : IMod<Range1d>) (time : IMod<MicroTime>)= 
+    let sg (anim : aval<Range1d>) (time : aval<MicroTime>)= 
         scene 
             |> Sg.adapter
-            |> Sg.uniform "Bones" ~~Animation.allBones
-            |> Sg.uniform "NumFrames" ~~Animation.numFrames
-            |> Sg.uniform "NumBones" ~~Animation.numBones
-            |> Sg.uniform "Framerate" ~~Animation.fps
-            |> Sg.uniform "FrameRange" (anim |> Mod.map (fun anim -> V2d(anim.Min, anim.Max)))
-            |> Sg.uniform "Time" (time |> Mod.map (fun m -> m.TotalSeconds))
-            |> Sg.uniform "TimeOffset" ~~0.0
+            |> Sg.uniform' "Bones" Animation.allBones
+            |> Sg.uniform' "NumFrames" Animation.numFrames
+            |> Sg.uniform' "NumBones" Animation.numBones
+            |> Sg.uniform' "Framerate" Animation.fps
+            |> Sg.uniform "FrameRange" (anim |> AVal.map (fun anim -> V2d(anim.Min, anim.Max)))
+            |> Sg.uniform "Time" (time |> AVal.map (fun m -> m.TotalSeconds))
+            |> Sg.uniform' "TimeOffset" 0.0
             |> Sg.transform (Trafo3d.FromBasis(V3d.IOO, V3d.OOI, V3d.OIO, V3d.Zero) * Trafo3d.Scale 20.0)
             // apply all shaders we have
                 
@@ -422,34 +420,37 @@ module EigiApp =
             | SetAnimation a ->
                 { model with animation = a }
 
-    let dropDown<'a, 'msg> (att : list<string * AttributeValue<'msg>>) (current : IMod<'a>) (update : 'a -> 'msg) (names : hmap<'a, string>) : DomNode<'msg> =
+    let mutable currentId = 0
+    let newId() = System.Threading.Interlocked.Increment(&currentId)
+    
+    let dropDown<'a, 'msg> (att : list<string * AttributeValue<'msg>>) (current : aval<'a>) (update : 'a -> 'msg) (names : HashMap<'a, string>) : DomNode<'msg> =
         
-        let mutable back = HMap.empty
+        let mutable back = HashMap.empty
         let forth = 
-            names |> HMap.map (fun a s -> 
+            names |> HashMap.map (fun a s -> 
                 let id = newId()
-                back <- HMap.add id a back
+                back <- HashMap.add id a back
                 id
             )
         
-        let selectedValue = current |> Mod.map (fun c -> HMap.find c forth)
+        let selectedValue = current |> AVal.map (fun c -> HashMap.find c forth)
         
         let boot = 
             String.concat "\r\n" [
-                sprintf "$('#__ID__').dropdown().dropdown('set selected', %d);" (Mod.force selectedValue)
+                sprintf "$('#__ID__').dropdown().dropdown('set selected', %d);" (AVal.force selectedValue)
                 "current.onmessage = function(v) { $('#__ID__').dropdown('set selected', v); };"
             ]
             
-        select ((onChange (fun str -> HMap.find (str |> int) back |> update))::att) [
-            for (value, name) in HMap.toSeq names do
-                let v = HMap.find value forth
+        select ((onChange (fun str -> HashMap.find (str |> int) back |> update))::att) [
+            for (value, name) in HashMap.toSeq names do
+                let v = HashMap.find value forth
                 yield option [attribute "value" (string v)] [ text name ]
         ]
 
     open FShade
     open Aardvark.Base.Ag
 
-    let view (m : MEigiModel) =
+    let view (m : AdaptiveEigiModel) =
         
         let mapOut _ m = Seq.empty
         let mapIn _ (m : Message) =
@@ -526,7 +527,7 @@ module EigiApp =
                 for v in all 8 do getShader v |> ignore
 
 
-                Mod.custom (fun t ->
+                AVal.custom (fun t ->
                     let transform = m.transform.GetValue t
                     let shrink = m.shrink.GetValue t
                     let skinning = m.skinning.GetValue t
@@ -540,20 +541,21 @@ module EigiApp =
                 )
                
             let surface = 
-                Surface.FShade (fun cfg ->
-                    let layout = FShade.EffectInputLayout.ofModules (worstShaders |> List.map (FShade.Effect.toModule cfg))
+                Surface.Dynamic (System.Func<_,_,_>(fun cfg _mode ->
+                    
+                    let layout = FShade.EffectInputLayout.ofModules (worstShaders |> List.map (fun e -> e.Link(cfg)))
 
                     let activeModule = 
-                        current |> Mod.map (fun effect ->
+                        current |> AVal.map (fun effect ->
                             cache.GetOrCreate(effect, fun effect ->
-                                let m = FShade.Effect.toModule cfg effect
+                                let m = effect.Link(cfg)
                                 FShade.EffectInputLayout.apply layout m
                             )
                         )
 
 
                     layout, activeModule
-                )
+                ))
 
             let wrap (s : ISg<_>) =
                 Aardvark.SceneGraph.Sg.SurfaceApplicator(surface, s) :> Aardvark.SceneGraph.ISg
@@ -571,7 +573,7 @@ module EigiApp =
 
         let glslCode = 
             let rx = System.Text.RegularExpressions.Regex @"[\r\n]+"
-            current |> Mod.map (fun e ->
+            current |> AVal.map (fun e ->
                 let glsl = 
                     e 
                     |> FShade.Effect.toModule config
@@ -581,7 +583,7 @@ module EigiApp =
 
 
         let animations =
-            HMap.ofList [
+            HashMap.ofList [
                 Eigi.Animation.none,    "none"
                 Eigi.Animation.idle,    "idle"
                 Eigi.Animation.walk,    "walk"
@@ -591,8 +593,8 @@ module EigiApp =
          
 
         let time =
-            m.animation |> Mod.bind (fun a ->
-                if a = Eigi.Animation.none then ~~MicroTime.Zero
+            m.animation |> AVal.bind (fun a ->
+                if a = Eigi.Animation.none then AVal.constant MicroTime.Zero
                 else m.time
             )
 
@@ -600,7 +602,7 @@ module EigiApp =
             Eigi.sg m.animation time
                 |> shader
 
-        let box : IMod<Box3d> = scene?GlobalBoundingBox()
+        let box : aval<Box3d> = scene?GlobalBoundingBox(Ag.Scope.Root)
         let b = box.GetValue()
 
         let r = b.Size.Length
@@ -610,7 +612,7 @@ module EigiApp =
         let app = Orbit.app' b.Center phi theta r scene
         
         let att = [style "width: 100%; height: 100%"]
-        let toggle (value : IMod<bool>) (toggle : Message) =
+        let toggle (value : aval<bool>) (toggle : Message) =
             div [] [
                 div [ clazz "ui toggle checkbox" ] [
                     Incremental.input (
@@ -663,7 +665,7 @@ module EigiApp =
 
         ]
    
-    let app =
+    let app : App<EigiModel, AdaptiveEigiModel, Message> =
         {
             initial = initial
             update = update

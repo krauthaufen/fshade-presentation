@@ -1,9 +1,8 @@
 ﻿namespace Aardvark.UI
 
 open Aardvark.Base
-open Aardvark.Base.Rendering
-open Aardvark.Base.Incremental
-open Aardvark.Base.Incremental.Operators
+open Aardvark.Rendering
+open FSharp.Data.Adaptive
 open Aardvark.Application
 
 module Orbit =
@@ -181,7 +180,7 @@ module Orbit =
                     moveSpeed = m.moveSpeed + delta 
                 }
 
-    let view (scene : ISg<Message>) (m : MOrbitModel) =
+    let view (scene : ISg<Message>) (m : AdaptiveOrbitModel) =
         let attributes =
             AttributeMap.ofListCond [
                 always <| style "width: 100%; height: 100%; background: #222; min-width: 1px; min-height: 1px"
@@ -191,7 +190,7 @@ module Orbit =
                 always <| onMouseDown (fun b p -> Down(b,p))
                 always <| onMouseUp (fun b p -> Up(b,p))
                 
-                onlyWhen (m.rotating %|| m.zooming) <| onMouseMove (fun p -> Move p)
+                onlyWhen (AVal.logicalOr [m.rotating; m.zooming]) <| onMouseMove (fun p -> Move p)
 
                 always <| onWheel (fun delta -> Scroll delta.Y)
                 
@@ -205,9 +204,9 @@ module Orbit =
             None
         )
         
-    let viewBox =
+    let viewBox : AdaptiveOrbitModel -> DomNode<_> =
         view (
-            Sg.box (Mod.constant C4b.Green) (Mod.constant Box3d.Unit)
+            Sg.box (AVal.constant C4b.Green) (AVal.constant Box3d.Unit)
                 |> Sg.shader {
                     do! DefaultSurfaces.trafo
                     do! DefaultSurfaces.vertexColor
@@ -226,7 +225,7 @@ module Orbit =
         }
 
 
-    let app =
+    let app : App<OrbitModel, AdaptiveOrbitModel, _> =
         {
             initial = initial
             update = update

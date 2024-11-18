@@ -1,7 +1,9 @@
 ﻿namespace Aardvark.UI
 
 open Aardvark.Base
-open Aardvark.Base.Incremental
+open Aardvark.Rendering
+open FSharp.Data.Adaptive
+open Adaptify
 
 type OrbitConfig =
     {
@@ -16,7 +18,7 @@ type OrbitConfig =
         scrollSensitivity   : float
     }
 
-[<DomainType>]
+[<ModelType>]
 type OrbitModel =
     {
         center      : V3d
@@ -24,7 +26,7 @@ type OrbitModel =
         theta       : float
         radius      : float
 
-        [<NonIncremental>]
+        [<NonAdaptive>]
         config      : OrbitConfig
 
         lastAction  : MicroTime

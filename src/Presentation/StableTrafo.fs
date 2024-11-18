@@ -3,13 +3,12 @@
 open System
 open Aardvark.Base
 open Aardvark.Base.Ag
-open Aardvark.Base.Incremental
-open Aardvark.Base.Incremental.Operators
+open FSharp.Data.Adaptive
 open Aardvark.SceneGraph
-open Aardvark.Base.Rendering
+open Aardvark.Rendering
 open Presentation.Model
 open Aardvark.UI.Presentation
-open Aardvark.SceneGraph.IO
+open Aardvark.SceneGraph.Assimp
 open Aardvark.Rendering.Text
 open Aardvark.UI
 open Aardvark.UI.Generic
@@ -119,12 +118,12 @@ module StableTrafo =
             | TimePassed _ ->
                 m
 
-    let view (m : MStableTrafoModel) =
+    let view (m : AdaptiveStableTrafoModel) =
         let box = Box3d.FromCenterAndSize(V3d.Zero, V3d.III)
         let scene =
             Sg.box' C4b.Red box
                 |> Sg.noEvents
-                |> Sg.trafo (m.offset |> Mod.map (fun o -> Trafo3d.Translation(1000.0 * o, 0.0, 0.0)))
+                |> Sg.trafo (m.offset |> AVal.map (fun o -> Trafo3d.Translation(1000.0 * o, 0.0, 0.0)))
 
         let sg =
             Sg.ofList [
@@ -170,7 +169,7 @@ module StableTrafo =
             ]
 
         ]
-    let app =
+    let app : App<_,AdaptiveStableTrafoModel,_> =
         {
             initial = initial
             update = update

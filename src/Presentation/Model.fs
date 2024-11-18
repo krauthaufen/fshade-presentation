@@ -2,7 +2,8 @@ namespace Presentation.Model
 
 open System
 open Aardvark.Base
-open Aardvark.Base.Incremental
+open FSharp.Data.Adaptive
+open Adaptify
 open Aardvark.UI.Primitives
 open Aardvark.UI
 
@@ -13,7 +14,7 @@ type Primitive =
 
 
 
-[<DomainType>]
+[<ModelType>]
 type Model =
     {
         currentModel    : Primitive
@@ -22,7 +23,7 @@ type Model =
     }
     
    
-[<DomainType>]
+[<ModelType>]
 type EigiModel =
     {
         time : MicroTime
@@ -41,7 +42,7 @@ type EigiModel =
     }   
 
     
-[<DomainType>]
+[<ModelType>]
 type StableTrafoModel =
     {
         offset : float
