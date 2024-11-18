@@ -1,6 +1,7 @@
 ﻿namespace Presentation
 
 open System
+open System.IO
 open Aardvark.Base
 open Aardvark.Base.Ag
 open FSharp.Data.Adaptive
@@ -315,9 +316,17 @@ module Eigi =
             }
 
     // load the model
-    let path = Path.combine [System.IO.Path.GetDirectoryName(System.Environment.ProcessPath); "raptor.dae" ]
+    let path = 
+        let p baseDir = 
+            let p = Path.combine [baseDir; "raptor.dae" ]
+            if File.Exists p then Some p else None
+
+        match Path.GetDirectoryName(System.Environment.ProcessPath) |> p with
+        | None -> p __SOURCE_DIRECTORY__
+        | Some p -> Some p
+
     Log.line "model path: %A" path
-    let scene = Loader.Assimp.loadFrom path (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
+    let scene = Loader.Assimp.loadFrom path.Value (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
         
     module Animation =
         let none    = Range1d(50.0, 51.0)
