@@ -18,6 +18,9 @@
     background: rgba(198, 198, 198, 0.31) !important;
 }
 
+div.aardvark > canvas {
+    left: 0px !important;
+}
 
 div.root {
     width: 100%;
