@@ -12,5 +12,5 @@ bin/Debug
 /.fake
 /.paket/paket.exe
 /Aardvark.log
-/.config
 **/.idea/
+.DS_Store
