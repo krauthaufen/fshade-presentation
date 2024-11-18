@@ -315,7 +315,7 @@ module Eigi =
             }
 
     // load the model
-    let scene = Loader.Assimp.loadFrom (Path.combine [__SOURCE_DIRECTORY__; "eigi.dae"]) (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
+    let scene = Loader.Assimp.loadFrom ("raptor.dae") (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
         
     module Animation =
         let none    = Range1d(50.0, 51.0)
