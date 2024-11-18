@@ -315,7 +315,9 @@ module Eigi =
             }
 
     // load the model
-    let scene = Loader.Assimp.loadFrom ("raptor.dae") (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
+    let path = Path.combine [System.IO.Path.GetDirectoryName(System.Environment.ProcessPath); "raptor.dae" ]
+    Log.line "model path: %A" path
+    let scene = Loader.Assimp.loadFrom path (Loader.Assimp.defaultFlags)// ||| Assimp.PostProcessSteps.FlipUVs)
         
     module Animation =
         let none    = Range1d(50.0, 51.0)
